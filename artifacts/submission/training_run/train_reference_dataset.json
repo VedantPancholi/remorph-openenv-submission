@@ -1,0 +1,1973 @@
+[
+  {
+    "scenario_id": "identity-hr-user-provisioning",
+    "workflow_id": "enterprise_user_provisioning",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "identity-hr-user-provisioning",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/hr/v1/users/provision",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "employee_id": "E-102",
+          "team": "north-platform"
+        }
+      },
+      "error_signal": {
+        "status_code": 414,
+        "message": "HR provisioning now requires tenant routing.",
+        "signals": {
+          "current_app": "identity",
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "auth_rewrite",
+        "required_headers": [
+          "x-api-key"
+        ],
+        "hint_visibility": "low",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/hr/v1/users/provision",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_user_provisioning",
+      "app_stack": [
+        "identity",
+        "hr"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "hr.users.provision",
+          "app": "hr",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "POST",
+      "target_path": "/hr/v1/users/provision",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key-north"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Provide the tenant routing header."
+    }
+  },
+  {
+    "scenario_id": "identity-hr-user-provisioning",
+    "workflow_id": "enterprise_user_provisioning",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "identity-hr-user-provisioning",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/hr/v1/users/provision",
+        "headers": {
+          "Authorization": "Bearer demo-token",
+          "x-api-key": "demo-tenant-key-north"
+        },
+        "body": {
+          "employee_id": "E-102",
+          "team": "north-platform"
+        }
+      },
+      "error_signal": {
+        "status_code": 435,
+        "message": "Provisioning expects a nested user profile.",
+        "signals": {
+          "current_app": "hr",
+          "required_shape": "user_profile"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "user_profile": {
+            "employee_id": "E-102",
+            "team": "north-platform"
+          }
+        },
+        "hint_visibility": "medium",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/hr/v1/users/provision",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_user_provisioning",
+      "app_stack": [
+        "identity",
+        "hr"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "hr.users.provision",
+          "app": "hr",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_auth",
+          "target_method": "POST",
+          "target_path": "/hr/v1/users/provision",
+          "header_patch": {
+            "x-api-key": "demo-tenant-key-north"
+          },
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Provide the tenant routing header."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/hr/v1/users/provision",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "user_profile": {
+          "employee_id": "E-102",
+          "team": "north-platform"
+        }
+      },
+      "reason": "Convert the provisioning payload to the nested HR format."
+    }
+  },
+  {
+    "scenario_id": "support-refund-reconciliation",
+    "workflow_id": "enterprise_refund_reconciliation",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "support-refund-reconciliation",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/support/v1/tickets/refundable",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 420,
+        "message": "Refundable ticket lookup moved to query endpoint.",
+        "signals": {
+          "current_app": "support",
+          "phase_goal": "ticket_lookup"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "hint_visibility": "high",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/support/v2/tickets/refundable",
+          "method": "GET",
+          "confidence": 0.8,
+          "source": "service_catalog"
+        },
+        {
+          "path": "/support/v2/tickets/search",
+          "method": "GET",
+          "confidence": 0.38,
+          "source": "semantic_search"
+        }
+      ],
+      "workflow_id": "enterprise_refund_reconciliation",
+      "app_stack": [
+        "support",
+        "billing"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "support.tickets.lookup",
+          "app": "support",
+          "method": "GET"
+        },
+        {
+          "tool_name": "billing.refunds.issue",
+          "app": "billing",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "GET",
+      "target_path": "/support/v2/tickets/refundable",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Switch to the v2 refundable tickets route."
+    }
+  },
+  {
+    "scenario_id": "support-refund-reconciliation",
+    "workflow_id": "enterprise_refund_reconciliation",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "support-refund-reconciliation",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/billing/v2/refunds",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "ticket_id": "T-55",
+          "amount_cents": 2416
+        }
+      },
+      "error_signal": {
+        "status_code": 417,
+        "message": "Billing refunds now require tenant key.",
+        "signals": {
+          "current_app": "billing",
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "auth_rewrite",
+        "required_headers": [
+          "x-api-key"
+        ],
+        "hint_visibility": "medium",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/billing/v2/refunds",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_refund_reconciliation",
+      "app_stack": [
+        "support",
+        "billing"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "support.tickets.lookup",
+          "app": "support",
+          "method": "GET"
+        },
+        {
+          "tool_name": "billing.refunds.issue",
+          "app": "billing",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_route",
+          "target_method": "GET",
+          "target_path": "/support/v2/tickets/refundable",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Switch to the v2 refundable tickets route."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "POST",
+      "target_path": "/billing/v2/refunds",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key-north"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Attach tenant key for the billing refund call."
+    }
+  },
+  {
+    "scenario_id": "analytics-quarter-close",
+    "workflow_id": "enterprise_quarter_close",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "analytics-quarter-close",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/analytics/v1/reports",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "quarter": "2026-Q3",
+          "region": null
+        }
+      },
+      "error_signal": {
+        "status_code": 451,
+        "message": "Analytics reports now require explicit region list.",
+        "signals": {
+          "current_app": "analytics",
+          "required_shape": "filters.regions"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "filters": {
+            "quarter": "2026-Q3",
+            "regions": [
+              "us"
+            ]
+          }
+        },
+        "hint_visibility": "low",
+        "tenant_alias": "west"
+      },
+      "candidate_routes": [
+        {
+          "path": "/analytics/v1/reports",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_quarter_close",
+      "app_stack": [
+        "analytics",
+        "finance"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "analytics.reports.generate",
+          "app": "analytics",
+          "method": "POST"
+        },
+        {
+          "tool_name": "finance.ledger.publish",
+          "app": "finance",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/analytics/v1/reports",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "filters": {
+          "quarter": "2026-Q3",
+          "regions": [
+            "us"
+          ]
+        }
+      },
+      "reason": "Use the nested analytics filters payload."
+    }
+  },
+  {
+    "scenario_id": "analytics-quarter-close",
+    "workflow_id": "enterprise_quarter_close",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "analytics-quarter-close",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v1/ledger/publish",
+        "headers": {
+          "Authorization": "Bearer demo-token",
+          "x-api-key": "demo-tenant-key-west"
+        },
+        "body": {
+          "report_id": "R-2026-Q1"
+        }
+      },
+      "error_signal": {
+        "status_code": 433,
+        "message": "Ledger publish moved to closeout route.",
+        "signals": {
+          "current_app": "finance",
+          "phase_goal": "publish_closeout"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "hint_visibility": "medium",
+        "tenant_alias": "west"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v2/ledger/publish",
+          "method": "POST",
+          "confidence": 0.41,
+          "source": "legacy_cache"
+        },
+        {
+          "path": "/finance/v2/ledger/closeout",
+          "method": "POST",
+          "confidence": 0.88,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_quarter_close",
+      "app_stack": [
+        "analytics",
+        "finance"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "analytics.reports.generate",
+          "app": "analytics",
+          "method": "POST"
+        },
+        {
+          "tool_name": "finance.ledger.publish",
+          "app": "finance",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_payload",
+          "target_method": "POST",
+          "target_path": "/analytics/v1/reports",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": {
+            "filters": {
+              "quarter": "2026-Q3",
+              "regions": [
+                "us"
+              ]
+            }
+          },
+          "reason": "Use the nested analytics filters payload."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "POST",
+      "target_path": "/finance/v2/ledger/closeout",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Publish through the finance closeout route."
+    }
+  },
+  {
+    "scenario_id": "crm-renewal-forecast-sync",
+    "workflow_id": "crm_renewal_forecast",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "crm-renewal-forecast-sync",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/crm/v1/renewals",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 420,
+        "message": "Renewal export moved to v2 export route.",
+        "signals": {
+          "current_app": "crm",
+          "phase_goal": "renewal_export"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "hint_visibility": "medium",
+        "tenant_alias": "east"
+      },
+      "candidate_routes": [
+        {
+          "path": "/crm/v2/renewals/export",
+          "method": "GET",
+          "confidence": 0.9,
+          "source": "service_catalog"
+        },
+        {
+          "path": "/crm/v2/renewals",
+          "method": "GET",
+          "confidence": 0.55,
+          "source": "semantic_search"
+        }
+      ],
+      "workflow_id": "crm_renewal_forecast",
+      "app_stack": [
+        "crm",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "crm.renewals.list",
+          "app": "crm",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.forecast.refresh",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "GET",
+      "target_path": "/crm/v2/renewals/export",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Switch to the v2 renewal export route."
+    }
+  },
+  {
+    "scenario_id": "crm-renewal-forecast-sync",
+    "workflow_id": "crm_renewal_forecast",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "crm-renewal-forecast-sync",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/analytics/v2/forecast/refresh",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "quarter": "2026-Q4",
+          "region": "apac"
+        }
+      },
+      "error_signal": {
+        "status_code": 438,
+        "message": "Forecast refresh now expects filters.regions list.",
+        "signals": {
+          "current_app": "analytics",
+          "required_shape": "filters.regions"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "filters": {
+            "quarter": "2026-Q4",
+            "regions": [
+              "apac"
+            ]
+          }
+        },
+        "hint_visibility": "medium",
+        "tenant_alias": "east"
+      },
+      "candidate_routes": [
+        {
+          "path": "/analytics/v2/forecast/refresh",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "crm_renewal_forecast",
+      "app_stack": [
+        "crm",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "crm.renewals.list",
+          "app": "crm",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.forecast.refresh",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_route",
+          "target_method": "GET",
+          "target_path": "/crm/v2/renewals/export",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Switch to the v2 renewal export route."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/analytics/v2/forecast/refresh",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "filters": {
+          "quarter": "2026-Q4",
+          "regions": [
+            "apac"
+          ]
+        }
+      },
+      "reason": "Rewrite the forecast payload into nested filters format."
+    }
+  },
+  {
+    "scenario_id": "hr-headcount-rollup",
+    "workflow_id": "hr_headcount_rollup",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "hr-headcount-rollup",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/analytics/v1/rollups/headcount",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "team": "east-research",
+          "employee_count": 31
+        }
+      },
+      "error_signal": {
+        "status_code": 426,
+        "message": "Headcount rollups now expect nested rollup payloads.",
+        "signals": {
+          "current_app": "analytics",
+          "required_shape": "rollup"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "rollup": {
+            "team": "east-research",
+            "employee_count": 31
+          }
+        },
+        "hint_visibility": "medium",
+        "tenant_alias": "east"
+      },
+      "candidate_routes": [
+        {
+          "path": "/analytics/v1/rollups/headcount",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "hr_headcount_rollup",
+      "app_stack": [
+        "hr",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "hr.headcount.export",
+          "app": "hr",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.rollups.publish",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/analytics/v1/rollups/headcount",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "rollup": {
+          "team": "east-research",
+          "employee_count": 31
+        }
+      },
+      "reason": "Nest the HR headcount payload under rollup."
+    }
+  },
+  {
+    "scenario_id": "hr-headcount-rollup",
+    "workflow_id": "hr_headcount_rollup",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "hr-headcount-rollup",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/analytics/v1/rollups/publish",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "rollup_id": "HR-ROLLUP"
+        }
+      },
+      "error_signal": {
+        "status_code": 408,
+        "message": "Rollup publish moved to commit route.",
+        "signals": {
+          "current_app": "analytics",
+          "phase_goal": "publish_rollup"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "hint_visibility": "high",
+        "tenant_alias": "east"
+      },
+      "candidate_routes": [
+        {
+          "path": "/analytics/v2/rollups/publish",
+          "method": "POST",
+          "confidence": 0.44,
+          "source": "legacy_cache"
+        },
+        {
+          "path": "/analytics/v2/rollups/commit",
+          "method": "POST",
+          "confidence": 0.86,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "hr_headcount_rollup",
+      "app_stack": [
+        "hr",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "hr.headcount.export",
+          "app": "hr",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.rollups.publish",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_payload",
+          "target_method": "POST",
+          "target_path": "/analytics/v1/rollups/headcount",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": {
+            "rollup": {
+              "team": "east-research",
+              "employee_count": 31
+            }
+          },
+          "reason": "Nest the HR headcount payload under rollup."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "POST",
+      "target_path": "/analytics/v2/rollups/commit",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Use the rollup commit endpoint."
+    }
+  },
+  {
+    "scenario_id": "finance-ledger-backfill",
+    "workflow_id": "finance_ledger_backfill",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "finance-ledger-backfill",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v1/ledger/backfill",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "batch_id": "BF-21"
+        }
+      },
+      "error_signal": {
+        "status_code": 417,
+        "message": "Ledger backfill moved to pluralized backfills route.",
+        "signals": {
+          "current_app": "finance",
+          "phase_goal": "route_backfill"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "hint_visibility": "high",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v2/ledger/backfills",
+          "method": "POST",
+          "confidence": 0.92,
+          "source": "service_catalog"
+        },
+        {
+          "path": "/finance/v2/ledger/backfill",
+          "method": "POST",
+          "confidence": 0.48,
+          "source": "semantic_search"
+        }
+      ],
+      "workflow_id": "finance_ledger_backfill",
+      "app_stack": [
+        "finance",
+        "identity"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "finance.ledger.backfill",
+          "app": "finance",
+          "method": "POST"
+        },
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "POST",
+      "target_path": "/finance/v2/ledger/backfills",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Use the v2 backfills route."
+    }
+  },
+  {
+    "scenario_id": "finance-ledger-backfill",
+    "workflow_id": "finance_ledger_backfill",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "finance-ledger-backfill",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v2/ledger/backfills",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "batch_id": "BF-21"
+        }
+      },
+      "error_signal": {
+        "status_code": 414,
+        "message": "Backfill jobs now require tenant routing.",
+        "signals": {
+          "current_app": "finance",
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "auth_rewrite",
+        "required_headers": [
+          "x-api-key"
+        ],
+        "hint_visibility": "low",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v2/ledger/backfills",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "finance_ledger_backfill",
+      "app_stack": [
+        "finance",
+        "identity"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "finance.ledger.backfill",
+          "app": "finance",
+          "method": "POST"
+        },
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_route",
+          "target_method": "POST",
+          "target_path": "/finance/v2/ledger/backfills",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Use the v2 backfills route."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "POST",
+      "target_path": "/finance/v2/ledger/backfills",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key-north"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Attach the tenant key for backfill submission."
+    }
+  },
+  {
+    "scenario_id": "billing-tax-reconciliation",
+    "workflow_id": "billing_tax_reconciliation",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "billing-tax-reconciliation",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v1/tax/reconcile",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "invoice_id": "INV-7",
+          "amount_cents": "9800"
+        }
+      },
+      "error_signal": {
+        "status_code": 461,
+        "message": "Tax reconciliation expects nested numeric payloads.",
+        "signals": {
+          "current_app": "finance",
+          "required_shape": "reconciliation"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "reconciliation": {
+            "invoice_id": "INV-7",
+            "amount_cents": 9839
+          }
+        },
+        "hint_visibility": "high",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v1/tax/reconcile",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "billing_tax_reconciliation",
+      "app_stack": [
+        "billing",
+        "finance",
+        "identity"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "billing.taxes.export",
+          "app": "billing",
+          "method": "GET"
+        },
+        {
+          "tool_name": "finance.tax.reconcile",
+          "app": "finance",
+          "method": "POST"
+        },
+        {
+          "tool_name": "finance.tax.attest",
+          "app": "finance",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 4,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/finance/v1/tax/reconcile",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "reconciliation": {
+          "invoice_id": "INV-7",
+          "amount_cents": 9839
+        }
+      },
+      "reason": "Normalize the tax reconciliation payload."
+    }
+  },
+  {
+    "scenario_id": "billing-tax-reconciliation",
+    "workflow_id": "billing_tax_reconciliation",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "billing-tax-reconciliation",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v1/tax/attest",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "reconciliation_id": "TR-11"
+        }
+      },
+      "error_signal": {
+        "status_code": 443,
+        "message": "Tax attestation moved to attestations route.",
+        "signals": {
+          "current_app": "finance",
+          "phase_goal": "attest_tax"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "hint_visibility": "high",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v2/tax/attestations",
+          "method": "POST",
+          "confidence": 0.9,
+          "source": "service_catalog"
+        },
+        {
+          "path": "/finance/v2/tax/attest",
+          "method": "POST",
+          "confidence": 0.32,
+          "source": "legacy_cache"
+        }
+      ],
+      "workflow_id": "billing_tax_reconciliation",
+      "app_stack": [
+        "billing",
+        "finance",
+        "identity"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "billing.taxes.export",
+          "app": "billing",
+          "method": "GET"
+        },
+        {
+          "tool_name": "finance.tax.reconcile",
+          "app": "finance",
+          "method": "POST"
+        },
+        {
+          "tool_name": "finance.tax.attest",
+          "app": "finance",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 4,
+      "prior_actions": [
+        {
+          "action_type": "repair_payload",
+          "target_method": "POST",
+          "target_path": "/finance/v1/tax/reconcile",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": {
+            "reconciliation": {
+              "invoice_id": "INV-7",
+              "amount_cents": 9839
+            }
+          },
+          "reason": "Normalize the tax reconciliation payload."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "POST",
+      "target_path": "/finance/v2/tax/attestations",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Use the v2 tax attestations route."
+    }
+  },
+  {
+    "scenario_id": "billing-tax-reconciliation",
+    "workflow_id": "billing_tax_reconciliation",
+    "phase_index": 2,
+    "observation": {
+      "episode_id": "billing-tax-reconciliation",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v2/tax/attestations",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "reconciliation_id": "TR-11"
+        }
+      },
+      "error_signal": {
+        "status_code": 440,
+        "message": "Tax attestations require tenant routing.",
+        "signals": {
+          "current_app": "finance",
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "auth_rewrite",
+        "required_headers": [
+          "x-api-key"
+        ],
+        "hint_visibility": "medium",
+        "tenant_alias": "north"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v2/tax/attestations",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "billing_tax_reconciliation",
+      "app_stack": [
+        "billing",
+        "finance",
+        "identity"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "billing.taxes.export",
+          "app": "billing",
+          "method": "GET"
+        },
+        {
+          "tool_name": "finance.tax.reconcile",
+          "app": "finance",
+          "method": "POST"
+        },
+        {
+          "tool_name": "finance.tax.attest",
+          "app": "finance",
+          "method": "POST"
+        }
+      ],
+      "step_index": 2,
+      "remaining_steps": 4,
+      "prior_actions": [
+        {
+          "action_type": "repair_payload",
+          "target_method": "POST",
+          "target_path": "/finance/v1/tax/reconcile",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": {
+            "reconciliation": {
+              "invoice_id": "INV-7",
+              "amount_cents": 9839
+            }
+          },
+          "reason": "Normalize the tax reconciliation payload."
+        },
+        {
+          "action_type": "repair_route",
+          "target_method": "POST",
+          "target_path": "/finance/v2/tax/attestations",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Use the v2 tax attestations route."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "POST",
+      "target_path": "/finance/v2/tax/attestations",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key-north"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Add the tenant header for tax attestation."
+    }
+  },
+  {
+    "scenario_id": "identity-access-review",
+    "workflow_id": "identity_access_review",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "identity-access-review",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/identity/v1/access/export",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 410,
+        "message": "Access export now requires tenant routing.",
+        "signals": {
+          "current_app": "identity",
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "auth_rewrite",
+        "required_headers": [
+          "x-api-key"
+        ],
+        "hint_visibility": "low",
+        "tenant_alias": "east"
+      },
+      "candidate_routes": [
+        {
+          "path": "/identity/v1/access/export",
+          "method": "GET",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "identity_access_review",
+      "app_stack": [
+        "identity",
+        "hr",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.access.export",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "hr.managers.resolve",
+          "app": "hr",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.access.score",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 4,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "GET",
+      "target_path": "/identity/v1/access/export",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key-east"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Provide tenant routing before access export."
+    }
+  },
+  {
+    "scenario_id": "identity-access-review",
+    "workflow_id": "identity_access_review",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "identity-access-review",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/hr/v1/managers",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 413,
+        "message": "Manager lookup moved to directory route.",
+        "signals": {
+          "current_app": "hr",
+          "phase_goal": "resolve_managers"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "hint_visibility": "low",
+        "tenant_alias": "east"
+      },
+      "candidate_routes": [
+        {
+          "path": "/hr/v2/managers",
+          "method": "GET",
+          "confidence": 0.35,
+          "source": "semantic_search"
+        },
+        {
+          "path": "/hr/v2/manager-directory",
+          "method": "GET",
+          "confidence": 0.89,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "identity_access_review",
+      "app_stack": [
+        "identity",
+        "hr",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.access.export",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "hr.managers.resolve",
+          "app": "hr",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.access.score",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 4,
+      "prior_actions": [
+        {
+          "action_type": "repair_auth",
+          "target_method": "GET",
+          "target_path": "/identity/v1/access/export",
+          "header_patch": {
+            "x-api-key": "demo-tenant-key-east"
+          },
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Provide tenant routing before access export."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "GET",
+      "target_path": "/hr/v2/manager-directory",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Use the HR manager directory route."
+    }
+  },
+  {
+    "scenario_id": "identity-access-review",
+    "workflow_id": "identity_access_review",
+    "phase_index": 2,
+    "observation": {
+      "episode_id": "identity-access-review",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/analytics/v1/access/score",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "review_id": "AR-8",
+          "region": "emea"
+        }
+      },
+      "error_signal": {
+        "status_code": 431,
+        "message": "Access scoring now expects nested review_request payloads.",
+        "signals": {
+          "current_app": "analytics",
+          "required_shape": "review_request"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "review_request": {
+            "review_id": "AR-8",
+            "regions": [
+              "emea"
+            ]
+          }
+        },
+        "hint_visibility": "medium",
+        "tenant_alias": "east"
+      },
+      "candidate_routes": [
+        {
+          "path": "/analytics/v1/access/score",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "identity_access_review",
+      "app_stack": [
+        "identity",
+        "hr",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.access.export",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "hr.managers.resolve",
+          "app": "hr",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.access.score",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 2,
+      "remaining_steps": 4,
+      "prior_actions": [
+        {
+          "action_type": "repair_auth",
+          "target_method": "GET",
+          "target_path": "/identity/v1/access/export",
+          "header_patch": {
+            "x-api-key": "demo-tenant-key-east"
+          },
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Provide tenant routing before access export."
+        },
+        {
+          "action_type": "repair_route",
+          "target_method": "GET",
+          "target_path": "/hr/v2/manager-directory",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Use the HR manager directory route."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/analytics/v1/access/score",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "review_request": {
+          "review_id": "AR-8",
+          "regions": [
+            "emea"
+          ]
+        }
+      },
+      "reason": "Wrap the access review payload in review_request."
+    }
+  },
+  {
+    "scenario_id": "finance-closebook-attestation",
+    "workflow_id": "finance_closebook_attestation",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "finance-closebook-attestation",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v2/closebook/prepare",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "closebook_id": "CB-9"
+        }
+      },
+      "error_signal": {
+        "status_code": 419,
+        "message": "Closebook preparation requires tenant routing.",
+        "signals": {
+          "current_app": "finance",
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "auth_rewrite",
+        "required_headers": [
+          "x-api-key"
+        ],
+        "hint_visibility": "low",
+        "tenant_alias": "west"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v2/closebook/prepare",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "finance_closebook_attestation",
+      "app_stack": [
+        "finance",
+        "identity",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "finance.closebook.prepare",
+          "app": "finance",
+          "method": "POST"
+        },
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.audit.log",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 4,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "POST",
+      "target_path": "/finance/v2/closebook/prepare",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key-west"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Attach tenant routing for closebook preparation."
+    }
+  },
+  {
+    "scenario_id": "finance-closebook-attestation",
+    "workflow_id": "finance_closebook_attestation",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "finance-closebook-attestation",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/analytics/v1/audit/log",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "closebook_id": "CB-9",
+          "entry_count": "12"
+        }
+      },
+      "error_signal": {
+        "status_code": 440,
+        "message": "Audit log expects nested audit_entry payloads with numeric counts.",
+        "signals": {
+          "current_app": "analytics",
+          "required_shape": "audit_entry"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "audit_entry": {
+            "closebook_id": "CB-9",
+            "entry_count": 30
+          }
+        },
+        "hint_visibility": "high",
+        "tenant_alias": "west"
+      },
+      "candidate_routes": [
+        {
+          "path": "/analytics/v1/audit/log",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "finance_closebook_attestation",
+      "app_stack": [
+        "finance",
+        "identity",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "finance.closebook.prepare",
+          "app": "finance",
+          "method": "POST"
+        },
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.audit.log",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 4,
+      "prior_actions": [
+        {
+          "action_type": "repair_auth",
+          "target_method": "POST",
+          "target_path": "/finance/v2/closebook/prepare",
+          "header_patch": {
+            "x-api-key": "demo-tenant-key-west"
+          },
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Attach tenant routing for closebook preparation."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/analytics/v1/audit/log",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "audit_entry": {
+          "closebook_id": "CB-9",
+          "entry_count": 30
+        }
+      },
+      "reason": "Normalize the closebook audit payload."
+    }
+  },
+  {
+    "scenario_id": "finance-closebook-attestation",
+    "workflow_id": "finance_closebook_attestation",
+    "phase_index": 2,
+    "observation": {
+      "episode_id": "finance-closebook-attestation",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v1/closebook/attest",
+        "headers": {
+          "Authorization": "Bearer demo-token",
+          "x-api-key": "demo-tenant-key-west"
+        },
+        "body": {
+          "closebook_id": "CB-9"
+        }
+      },
+      "error_signal": {
+        "status_code": 422,
+        "message": "Closebook attestation moved to attestations route.",
+        "signals": {
+          "current_app": "finance",
+          "phase_goal": "attest_closebook"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "hint_visibility": "medium",
+        "tenant_alias": "west"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v2/closebook/attestations",
+          "method": "POST",
+          "confidence": 0.93,
+          "source": "service_catalog"
+        },
+        {
+          "path": "/finance/v2/closebook/attest",
+          "method": "POST",
+          "confidence": 0.31,
+          "source": "legacy_cache"
+        }
+      ],
+      "workflow_id": "finance_closebook_attestation",
+      "app_stack": [
+        "finance",
+        "identity",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "finance.closebook.prepare",
+          "app": "finance",
+          "method": "POST"
+        },
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "analytics.audit.log",
+          "app": "analytics",
+          "method": "POST"
+        }
+      ],
+      "step_index": 2,
+      "remaining_steps": 4,
+      "prior_actions": [
+        {
+          "action_type": "repair_auth",
+          "target_method": "POST",
+          "target_path": "/finance/v2/closebook/prepare",
+          "header_patch": {
+            "x-api-key": "demo-tenant-key-west"
+          },
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Attach tenant routing for closebook preparation."
+        },
+        {
+          "action_type": "repair_payload",
+          "target_method": "POST",
+          "target_path": "/analytics/v1/audit/log",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": {
+            "audit_entry": {
+              "closebook_id": "CB-9",
+              "entry_count": 30
+            }
+          },
+          "reason": "Normalize the closebook audit payload."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "POST",
+      "target_path": "/finance/v2/closebook/attestations",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Use the v2 closebook attestations endpoint."
+    }
+  },
+  {
+    "scenario_id": "identity-access-token-missing",
+    "workflow_id": "identity_access_token_missing",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "identity-access-token-missing",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "unrecoverable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/analytics/v1/secure/exports",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "export_id": "SEC-32"
+        }
+      },
+      "error_signal": {
+        "status_code": 433,
+        "message": "Secure analytics export requires credential material that must not be fabricated.",
+        "signals": {
+          "credential_state": "missing_or_invalid_credential_material",
+          "current_app": "analytics"
+        }
+      },
+      "contract_hints": {
+        "required_headers": [
+          "Authorization",
+          "x-api-key"
+        ],
+        "repair_strategy": "safe_abstain",
+        "safety_note": "Do not hallucinate credentials for unrecoverable auth failures.",
+        "hint_visibility": "high",
+        "tenant_alias": "east"
+      },
+      "candidate_routes": [
+        {
+          "path": "/analytics/v1/secure/exports",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "identity_access_token_missing",
+      "app_stack": [
+        "identity",
+        "analytics"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.audit.raise_abstention",
+          "app": "identity",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 1,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "abstain",
+      "target_method": null,
+      "target_path": null,
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Do not fabricate credentials; abstain safely."
+    }
+  }
+]

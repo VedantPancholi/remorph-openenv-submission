@@ -1,0 +1,6 @@
+{
+  "train_example_count": 22,
+  "eval_example_count": 12,
+  "train_scenario_count": 10,
+  "eval_scenario_count": 6
+}

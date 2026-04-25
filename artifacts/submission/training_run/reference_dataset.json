@@ -1,0 +1,929 @@
+[
+  {
+    "scenario_id": "payload-schema-missing-key",
+    "workflow_id": "single_api_payload_repair",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "payload-schema-missing-key",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/users",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "first_name": "John",
+          "last_name": "Doe"
+        }
+      },
+      "error_signal": {
+        "status_code": 422,
+        "message": "Payload no longer matches the live schema.",
+        "signals": {
+          "missing_required_path": "user"
+        }
+      },
+      "contract_hints": {
+        "expected_request_body": {
+          "user": {
+            "f_name": "John",
+            "l_name": "Doe"
+          }
+        },
+        "repair_strategy": "payload_rewrite",
+        "drift_contract": "drift_payload.json"
+      },
+      "candidate_routes": [
+        {
+          "path": "/users",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "contract"
+        }
+      ],
+      "workflow_id": "single_api_payload_repair",
+      "app_stack": [
+        "crm"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "crm.users.create",
+          "app": "crm",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 0,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/users",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "user": {
+          "f_name": "John",
+          "l_name": "Doe"
+        }
+      },
+      "reason": "Wrap the legacy flat body in the new nested user object."
+    }
+  },
+  {
+    "scenario_id": "route-route-regression",
+    "workflow_id": "single_api_route_repair",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "route-route-regression",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/api/v1/transactions",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 404,
+        "message": "Legacy route no longer exists.",
+        "signals": {
+          "route_error_detail": "moved_to_new_ledger_endpoint"
+        }
+      },
+      "contract_hints": {
+        "expected_route_by_method": {
+          "GET": "/api/v2/finance/ledger"
+        },
+        "repair_strategy": "route_rewrite",
+        "drift_contract": "drift_route.json"
+      },
+      "candidate_routes": [
+        {
+          "path": "/api/v2/finance/ledger",
+          "method": "GET",
+          "confidence": 0.97,
+          "source": "contract"
+        }
+      ],
+      "workflow_id": "single_api_route_repair",
+      "app_stack": [
+        "finance"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "finance.ledger.list",
+          "app": "finance",
+          "method": "GET"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 0,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "GET",
+      "target_path": "/api/v2/finance/ledger",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Rewrite the request to the drifted ledger endpoint."
+    }
+  },
+  {
+    "scenario_id": "auth-missing-tenant",
+    "workflow_id": "single_api_auth_repair",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "auth-missing-tenant",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/api/v2/finance/ledger",
+        "headers": {
+          "x-api-key": ""
+        },
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 401,
+        "message": "Tenant/API key header required.",
+        "signals": {
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "required_headers": [
+          "x-api-key"
+        ],
+        "repair_strategy": "auth_rewrite",
+        "drift_contract": "drift_auth.json"
+      },
+      "candidate_routes": [
+        {
+          "path": "/api/v2/finance/ledger",
+          "method": "GET",
+          "confidence": 1.0,
+          "source": "contract"
+        }
+      ],
+      "workflow_id": "single_api_auth_repair",
+      "app_stack": [
+        "identity",
+        "finance"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 0,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "GET",
+      "target_path": "/api/v2/finance/ledger",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Supply the required tenant header for the recoverable auth drift case."
+    }
+  },
+  {
+    "scenario_id": "auth-missing-token",
+    "workflow_id": "single_api_safe_abstain",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "auth-missing-token",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "unrecoverable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/api/v2/finance/ledger",
+        "headers": {},
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 401,
+        "message": "Credential material is missing and must not be fabricated.",
+        "signals": {
+          "credential_state": "missing_or_invalid_credential_material"
+        }
+      },
+      "contract_hints": {
+        "required_headers": [
+          "Authorization",
+          "x-api-key"
+        ],
+        "repair_strategy": "safe_abstain",
+        "safety_note": "Do not hallucinate credentials for unrecoverable auth failures.",
+        "drift_contract": "drift_auth.json"
+      },
+      "candidate_routes": [
+        {
+          "path": "/api/v2/finance/ledger",
+          "method": "GET",
+          "confidence": 1.0,
+          "source": "contract"
+        }
+      ],
+      "workflow_id": "single_api_safe_abstain",
+      "app_stack": [
+        "identity",
+        "finance"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.audit.raise_abstention",
+          "app": "identity",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 0,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "abstain",
+      "target_method": null,
+      "target_path": null,
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Missing credentials are unrecoverable; abstain safely instead of inventing auth."
+    }
+  },
+  {
+    "scenario_id": "crm-billing-order-sync",
+    "workflow_id": "enterprise_order_sync",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "crm-billing-order-sync",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/crm/v1/orders",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 404,
+        "message": "CRM export route deprecated.",
+        "signals": {
+          "current_app": "crm",
+          "phase_goal": "discover_export_route"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite",
+        "visible_dependency": "billing payload step will follow after export succeeds"
+      },
+      "candidate_routes": [
+        {
+          "path": "/crm/v2/orders/export",
+          "method": "GET",
+          "confidence": 0.82,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_order_sync",
+      "app_stack": [
+        "crm",
+        "billing"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "crm.orders.export",
+          "app": "crm",
+          "method": "GET"
+        },
+        {
+          "tool_name": "billing.invoices.create",
+          "app": "billing",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "GET",
+      "target_path": "/crm/v2/orders/export",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Use the v2 CRM export route."
+    }
+  },
+  {
+    "scenario_id": "crm-billing-order-sync",
+    "workflow_id": "enterprise_order_sync",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "crm-billing-order-sync",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/billing/v2/invoices",
+        "headers": {
+          "x-api-key": "demo-tenant-key"
+        },
+        "body": {
+          "order_id": 9911,
+          "amount_cents": "12500"
+        }
+      },
+      "error_signal": {
+        "status_code": 422,
+        "message": "Billing invoice schema expects nested order payload and integer cents.",
+        "signals": {
+          "current_app": "billing",
+          "required_shape": "invoice.order"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "invoice": {
+            "order": {
+              "id": 9911
+            },
+            "amount_cents": 12500
+          }
+        }
+      },
+      "candidate_routes": [
+        {
+          "path": "/billing/v2/invoices",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_order_sync",
+      "app_stack": [
+        "crm",
+        "billing"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "crm.orders.export",
+          "app": "crm",
+          "method": "GET"
+        },
+        {
+          "tool_name": "billing.invoices.create",
+          "app": "billing",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_route",
+          "target_method": "GET",
+          "target_path": "/crm/v2/orders/export",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Use the v2 CRM export route."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/billing/v2/invoices",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "invoice": {
+          "order": {
+            "id": 9911
+          },
+          "amount_cents": 12500
+        }
+      },
+      "reason": "Create the invoice with the nested billing payload."
+    }
+  },
+  {
+    "scenario_id": "identity-hr-user-provisioning",
+    "workflow_id": "enterprise_user_provisioning",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "identity-hr-user-provisioning",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/hr/v1/users/provision",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "employee_id": "E-102",
+          "team": "ml-platform"
+        }
+      },
+      "error_signal": {
+        "status_code": 401,
+        "message": "HR provisioning now requires tenant routing.",
+        "signals": {
+          "current_app": "identity",
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "auth_rewrite",
+        "required_headers": [
+          "x-api-key"
+        ]
+      },
+      "candidate_routes": [
+        {
+          "path": "/hr/v1/users/provision",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_user_provisioning",
+      "app_stack": [
+        "identity",
+        "hr"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "hr.users.provision",
+          "app": "hr",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "POST",
+      "target_path": "/hr/v1/users/provision",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Provide the tenant routing header."
+    }
+  },
+  {
+    "scenario_id": "identity-hr-user-provisioning",
+    "workflow_id": "enterprise_user_provisioning",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "identity-hr-user-provisioning",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/hr/v1/users/provision",
+        "headers": {
+          "Authorization": "Bearer demo-token",
+          "x-api-key": "demo-tenant-key"
+        },
+        "body": {
+          "employee_id": "E-102",
+          "team": "ml-platform"
+        }
+      },
+      "error_signal": {
+        "status_code": 422,
+        "message": "Provisioning expects a nested user profile.",
+        "signals": {
+          "current_app": "hr",
+          "required_shape": "user_profile"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "user_profile": {
+            "employee_id": "E-102",
+            "team": "ml-platform"
+          }
+        }
+      },
+      "candidate_routes": [
+        {
+          "path": "/hr/v1/users/provision",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_user_provisioning",
+      "app_stack": [
+        "identity",
+        "hr"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "identity.tenant.resolve",
+          "app": "identity",
+          "method": "GET"
+        },
+        {
+          "tool_name": "hr.users.provision",
+          "app": "hr",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_auth",
+          "target_method": "POST",
+          "target_path": "/hr/v1/users/provision",
+          "header_patch": {
+            "x-api-key": "demo-tenant-key"
+          },
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Provide the tenant routing header."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/hr/v1/users/provision",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "user_profile": {
+          "employee_id": "E-102",
+          "team": "ml-platform"
+        }
+      },
+      "reason": "Convert the provisioning payload to the nested HR format."
+    }
+  },
+  {
+    "scenario_id": "support-refund-reconciliation",
+    "workflow_id": "enterprise_refund_reconciliation",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "support-refund-reconciliation",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "GET",
+        "path": "/support/v1/tickets/refundable",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": null
+      },
+      "error_signal": {
+        "status_code": 404,
+        "message": "Refundable ticket lookup moved to query endpoint.",
+        "signals": {
+          "current_app": "support",
+          "phase_goal": "ticket_lookup"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite"
+      },
+      "candidate_routes": [
+        {
+          "path": "/support/v2/tickets/refundable",
+          "method": "GET",
+          "confidence": 0.8,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_refund_reconciliation",
+      "app_stack": [
+        "support",
+        "billing"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "support.tickets.lookup",
+          "app": "support",
+          "method": "GET"
+        },
+        {
+          "tool_name": "billing.refunds.issue",
+          "app": "billing",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "GET",
+      "target_path": "/support/v2/tickets/refundable",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Switch to the v2 refundable tickets route."
+    }
+  },
+  {
+    "scenario_id": "support-refund-reconciliation",
+    "workflow_id": "enterprise_refund_reconciliation",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "support-refund-reconciliation",
+      "scenario_type": "auth_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/billing/v2/refunds",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "ticket_id": "T-55",
+          "amount_cents": 2400
+        }
+      },
+      "error_signal": {
+        "status_code": 401,
+        "message": "Billing refunds now require tenant key.",
+        "signals": {
+          "current_app": "billing",
+          "missing_header": "x-api-key"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "auth_rewrite",
+        "required_headers": [
+          "x-api-key"
+        ]
+      },
+      "candidate_routes": [
+        {
+          "path": "/billing/v2/refunds",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_refund_reconciliation",
+      "app_stack": [
+        "support",
+        "billing"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "support.tickets.lookup",
+          "app": "support",
+          "method": "GET"
+        },
+        {
+          "tool_name": "billing.refunds.issue",
+          "app": "billing",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_route",
+          "target_method": "GET",
+          "target_path": "/support/v2/tickets/refundable",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": null,
+          "reason": "Switch to the v2 refundable tickets route."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_auth",
+      "target_method": "POST",
+      "target_path": "/billing/v2/refunds",
+      "header_patch": {
+        "x-api-key": "demo-tenant-key"
+      },
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Attach tenant key for the billing refund call."
+    }
+  },
+  {
+    "scenario_id": "analytics-quarter-close",
+    "workflow_id": "enterprise_quarter_close",
+    "phase_index": 0,
+    "observation": {
+      "episode_id": "analytics-quarter-close",
+      "scenario_type": "payload_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/analytics/v1/reports",
+        "headers": {
+          "Authorization": "Bearer demo-token"
+        },
+        "body": {
+          "quarter": "2026-Q1",
+          "region": null
+        }
+      },
+      "error_signal": {
+        "status_code": 422,
+        "message": "Analytics reports now require explicit region list.",
+        "signals": {
+          "current_app": "analytics",
+          "required_shape": "filters.regions"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "payload_rewrite",
+        "expected_request_body": {
+          "filters": {
+            "quarter": "2026-Q1",
+            "regions": [
+              "us"
+            ]
+          }
+        }
+      },
+      "candidate_routes": [
+        {
+          "path": "/analytics/v1/reports",
+          "method": "POST",
+          "confidence": 1.0,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_quarter_close",
+      "app_stack": [
+        "analytics",
+        "finance"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "analytics.reports.generate",
+          "app": "analytics",
+          "method": "POST"
+        },
+        {
+          "tool_name": "finance.ledger.publish",
+          "app": "finance",
+          "method": "POST"
+        }
+      ],
+      "step_index": 0,
+      "remaining_steps": 3,
+      "prior_actions": [],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_payload",
+      "target_method": "POST",
+      "target_path": "/analytics/v1/reports",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": {
+        "filters": {
+          "quarter": "2026-Q1",
+          "regions": [
+            "us"
+          ]
+        }
+      },
+      "reason": "Use the nested analytics filters payload."
+    }
+  },
+  {
+    "scenario_id": "analytics-quarter-close",
+    "workflow_id": "enterprise_quarter_close",
+    "phase_index": 1,
+    "observation": {
+      "episode_id": "analytics-quarter-close",
+      "scenario_type": "route_drift",
+      "benchmark_partition": "repairable",
+      "failed_request": {
+        "method": "POST",
+        "path": "/finance/v1/ledger/publish",
+        "headers": {
+          "Authorization": "Bearer demo-token",
+          "x-api-key": "demo-tenant-key"
+        },
+        "body": {
+          "report_id": "R-2026-Q1"
+        }
+      },
+      "error_signal": {
+        "status_code": 404,
+        "message": "Ledger publish moved to closeout route.",
+        "signals": {
+          "current_app": "finance",
+          "phase_goal": "publish_closeout"
+        }
+      },
+      "contract_hints": {
+        "repair_strategy": "route_rewrite"
+      },
+      "candidate_routes": [
+        {
+          "path": "/finance/v2/ledger/closeout",
+          "method": "POST",
+          "confidence": 0.88,
+          "source": "service_catalog"
+        }
+      ],
+      "workflow_id": "enterprise_quarter_close",
+      "app_stack": [
+        "analytics",
+        "finance"
+      ],
+      "visible_tools": [
+        {
+          "tool_name": "analytics.reports.generate",
+          "app": "analytics",
+          "method": "POST"
+        },
+        {
+          "tool_name": "finance.ledger.publish",
+          "app": "finance",
+          "method": "POST"
+        }
+      ],
+      "step_index": 1,
+      "remaining_steps": 3,
+      "prior_actions": [
+        {
+          "action_type": "repair_payload",
+          "target_method": "POST",
+          "target_path": "/analytics/v1/reports",
+          "header_patch": null,
+          "query_patch": null,
+          "body_patch": {
+            "filters": {
+              "quarter": "2026-Q1",
+              "regions": [
+                "us"
+              ]
+            }
+          },
+          "reason": "Use the nested analytics filters payload."
+        }
+      ],
+      "retry_count": 0
+    },
+    "action": {
+      "action_type": "repair_route",
+      "target_method": "POST",
+      "target_path": "/finance/v2/ledger/closeout",
+      "header_patch": null,
+      "query_patch": null,
+      "body_patch": null,
+      "reason": "Publish through the finance closeout route."
+    }
+  }
+]

@@ -1,0 +1,73 @@
+{
+  "seed": 42,
+  "split": "eval",
+  "scenarios": [
+    {
+      "scenario_id": "crm-billing-order-sync",
+      "workflow_id": "enterprise_order_sync",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "2-step",
+      "service_domain": "crm,billing",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "identity-device-enrollment",
+      "workflow_id": "identity_device_enrollment",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "1-step",
+      "service_domain": "identity",
+      "benchmark_partition": "repairable",
+      "phase_count": 1
+    },
+    {
+      "scenario_id": "support-escalation-sync",
+      "workflow_id": "support_escalation_sync",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "2-step",
+      "service_domain": "support,crm",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "analytics-forecast-refresh",
+      "workflow_id": "analytics_forecast_refresh",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "2-step",
+      "service_domain": "analytics,identity",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "crm-lead-dedup-merge",
+      "workflow_id": "crm_lead_dedup_merge",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "3-step",
+      "service_domain": "crm,analytics,identity",
+      "benchmark_partition": "repairable",
+      "phase_count": 3
+    },
+    {
+      "scenario_id": "support-sla-breach-export",
+      "workflow_id": "support_sla_breach_export",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "2-step",
+      "service_domain": "support,analytics",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    }
+  ],
+  "scenario_count": 6
+}

@@ -1,0 +1,118 @@
+name: remorph-openenv
+description: OpenEnv environment for API drift repair and safe abstention.
+entrypoint: remorph_openenv.environment:ReMorphEnvironment
+package: remorph_openenv
+version: "0.1.0"
+tags:
+  - openenv
+  - reinforcement-learning
+  - api-drift
+  - safe-abstention
+runtime:
+  python: "3.11"
+environment:
+  class_name: ReMorphEnvironment
+  reset_method: reset
+  step_method: step
+  state_method: state
+  close_method: close
+  observation_keys:
+    - episode_id
+    - scenario_type
+    - benchmark_partition
+    - failed_request
+    - error_signal
+    - contract_hints
+    - candidate_routes
+    - workflow_id
+    - app_stack
+    - visible_tools
+    - step_index
+    - remaining_steps
+    - prior_actions
+    - retry_count
+  action_schema:
+    type: object
+    additionalProperties: false
+    required:
+      - action_type
+    properties:
+      action_type:
+        type: string
+        enum:
+          - repair_route
+          - repair_payload
+          - repair_auth
+          - abstain
+          - no_op
+      target_method:
+        type:
+          - string
+          - "null"
+      target_path:
+        type:
+          - string
+          - "null"
+      header_patch:
+        type:
+          - object
+          - "null"
+      query_patch:
+        type:
+          - object
+          - "null"
+      body_patch:
+        type:
+          - object
+          - "null"
+      reason:
+        type:
+          - string
+          - "null"
+  observation_schema:
+    type: object
+    additionalProperties: false
+    required:
+      - episode_id
+      - scenario_type
+      - benchmark_partition
+      - failed_request
+      - error_signal
+      - contract_hints
+      - candidate_routes
+      - retry_count
+    properties:
+      episode_id:
+        type: string
+      scenario_type:
+        type: string
+      benchmark_partition:
+        type: string
+      failed_request:
+        type: object
+      error_signal:
+        type: object
+      contract_hints:
+        type: object
+      candidate_routes:
+        type: array
+      workflow_id:
+        type:
+          - string
+          - "null"
+      app_stack:
+        type: array
+      visible_tools:
+        type: array
+      step_index:
+        type: integer
+      remaining_steps:
+        type: integer
+      prior_actions:
+        type: array
+      retry_count:
+        type: integer
+artifacts:
+  training_summary: artifacts/submission/training_run/training_summary.json
+  eval_summary: artifacts/submission/training_run/eval_summary.json
+  plots_dir: artifacts/submission/plots

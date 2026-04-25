@@ -1,0 +1,34 @@
+[
+  {
+    "epoch": 0,
+    "split": "train",
+    "policy_name": "baseline",
+    "average_normalized_reward": 2.0882,
+    "average_raw_reward": -19.55,
+    "success_rate": 0.1
+  },
+  {
+    "epoch": 0,
+    "split": "eval",
+    "policy_name": "baseline",
+    "average_normalized_reward": 2.2062,
+    "average_raw_reward": -19.6667,
+    "success_rate": 0.0
+  },
+  {
+    "epoch": 1,
+    "split": "train",
+    "policy_name": "supervised",
+    "average_normalized_reward": 1.85,
+    "average_raw_reward": 19.7,
+    "success_rate": 1.0
+  },
+  {
+    "epoch": 1,
+    "split": "eval",
+    "policy_name": "supervised",
+    "average_normalized_reward": 1.7237,
+    "average_raw_reward": 19.5,
+    "success_rate": 1.0
+  }
+]

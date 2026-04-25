@@ -1,0 +1,117 @@
+{
+  "seed": 42,
+  "split": "train",
+  "scenarios": [
+    {
+      "scenario_id": "identity-hr-user-provisioning",
+      "workflow_id": "enterprise_user_provisioning",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "identity,hr",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "support-refund-reconciliation",
+      "workflow_id": "enterprise_refund_reconciliation",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "support,billing",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "analytics-quarter-close",
+      "workflow_id": "enterprise_quarter_close",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "analytics,finance",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "crm-renewal-forecast-sync",
+      "workflow_id": "crm_renewal_forecast",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "crm,analytics",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "hr-headcount-rollup",
+      "workflow_id": "hr_headcount_rollup",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "hr,analytics",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "finance-ledger-backfill",
+      "workflow_id": "finance_ledger_backfill",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "finance,identity",
+      "benchmark_partition": "repairable",
+      "phase_count": 2
+    },
+    {
+      "scenario_id": "billing-tax-reconciliation",
+      "workflow_id": "billing_tax_reconciliation",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "3-step",
+      "service_domain": "billing,finance,identity",
+      "benchmark_partition": "repairable",
+      "phase_count": 3
+    },
+    {
+      "scenario_id": "identity-access-review",
+      "workflow_id": "identity_access_review",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "3-step",
+      "service_domain": "identity,hr,analytics",
+      "benchmark_partition": "repairable",
+      "phase_count": 3
+    },
+    {
+      "scenario_id": "finance-closebook-attestation",
+      "workflow_id": "finance_closebook_attestation",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "3-step",
+      "service_domain": "finance,identity,analytics",
+      "benchmark_partition": "repairable",
+      "phase_count": 3
+    },
+    {
+      "scenario_id": "identity-access-token-missing",
+      "workflow_id": "identity_access_token_missing",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "1-step",
+      "service_domain": "identity,analytics",
+      "benchmark_partition": "unrecoverable",
+      "phase_count": 1
+    }
+  ],
+  "scenario_count": 10
+}

@@ -1,0 +1,369 @@
+{
+  "seed": 42,
+  "scenario_count": 20,
+  "validation_scenario_count": 4,
+  "benchmark_scenario_count": 16,
+  "scenarios": [
+    {
+      "scenario_id": "payload-schema-missing-key",
+      "workflow_id": "single_api_payload_repair",
+      "validation_tier": "phase1",
+      "execution_mode": "simulated",
+      "split": "all",
+      "workflow_length": "1-step",
+      "service_domain": "crm",
+      "randomization_profile": "frozen",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "crm"
+      ],
+      "phase_count": 1,
+      "max_steps": 1,
+      "description": "Single-step schema repair against a CRM user creation endpoint."
+    },
+    {
+      "scenario_id": "route-route-regression",
+      "workflow_id": "single_api_route_repair",
+      "validation_tier": "phase1",
+      "execution_mode": "simulated",
+      "split": "all",
+      "workflow_length": "1-step",
+      "service_domain": "finance",
+      "randomization_profile": "frozen",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "finance"
+      ],
+      "phase_count": 1,
+      "max_steps": 1,
+      "description": "Single-step route repair against a finance ledger API."
+    },
+    {
+      "scenario_id": "auth-missing-tenant",
+      "workflow_id": "single_api_auth_repair",
+      "validation_tier": "phase1",
+      "execution_mode": "simulated",
+      "split": "all",
+      "workflow_length": "1-step",
+      "service_domain": "identity",
+      "randomization_profile": "frozen",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "identity",
+        "finance"
+      ],
+      "phase_count": 1,
+      "max_steps": 1,
+      "description": "Single-step recoverable auth repair."
+    },
+    {
+      "scenario_id": "auth-missing-token",
+      "workflow_id": "single_api_safe_abstain",
+      "validation_tier": "phase1",
+      "execution_mode": "simulated",
+      "split": "all",
+      "workflow_length": "1-step",
+      "service_domain": "identity",
+      "randomization_profile": "frozen",
+      "benchmark_partition": "unrecoverable",
+      "app_stack": [
+        "identity",
+        "finance"
+      ],
+      "phase_count": 1,
+      "max_steps": 1,
+      "description": "Single-step unrecoverable auth abstention."
+    },
+    {
+      "scenario_id": "crm-billing-order-sync",
+      "workflow_id": "enterprise_order_sync",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "2-step",
+      "service_domain": "crm,billing",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "crm",
+        "billing"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Two-step CRM to billing workflow with route then payload adaptation."
+    },
+    {
+      "scenario_id": "identity-hr-user-provisioning",
+      "workflow_id": "enterprise_user_provisioning",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "identity,hr",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "identity",
+        "hr"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Two-step identity plus HR provisioning workflow."
+    },
+    {
+      "scenario_id": "support-refund-reconciliation",
+      "workflow_id": "enterprise_refund_reconciliation",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "support,billing",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "support",
+        "billing"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Two-step support plus billing refund workflow."
+    },
+    {
+      "scenario_id": "analytics-quarter-close",
+      "workflow_id": "enterprise_quarter_close",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "analytics,finance",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "analytics",
+        "finance"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Two-step analytics to finance quarter-close workflow."
+    },
+    {
+      "scenario_id": "crm-renewal-forecast-sync",
+      "workflow_id": "crm_renewal_forecast",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "crm,analytics",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "crm",
+        "analytics"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Route repair followed by analytics payload repair for CRM renewals."
+    },
+    {
+      "scenario_id": "identity-device-enrollment",
+      "workflow_id": "identity_device_enrollment",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "1-step",
+      "service_domain": "identity",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "identity"
+      ],
+      "phase_count": 1,
+      "max_steps": 2,
+      "description": "Single-step recoverable auth repair for identity device enrollment."
+    },
+    {
+      "scenario_id": "hr-headcount-rollup",
+      "workflow_id": "hr_headcount_rollup",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "hr,analytics",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "hr",
+        "analytics"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Analytics rollup payload repair followed by publish route repair."
+    },
+    {
+      "scenario_id": "finance-ledger-backfill",
+      "workflow_id": "finance_ledger_backfill",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "2-step",
+      "service_domain": "finance,identity",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "finance",
+        "identity"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Finance ledger backfill route repair followed by recoverable auth repair."
+    },
+    {
+      "scenario_id": "support-escalation-sync",
+      "workflow_id": "support_escalation_sync",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "2-step",
+      "service_domain": "support,crm",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "support",
+        "crm"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Support export route repair followed by CRM payload normalization."
+    },
+    {
+      "scenario_id": "analytics-forecast-refresh",
+      "workflow_id": "analytics_forecast_refresh",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "2-step",
+      "service_domain": "analytics,identity",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "analytics",
+        "identity"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Analytics forecast refresh with payload repair followed by auth repair."
+    },
+    {
+      "scenario_id": "crm-lead-dedup-merge",
+      "workflow_id": "crm_lead_dedup_merge",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "3-step",
+      "service_domain": "crm,analytics,identity",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "crm",
+        "analytics",
+        "identity"
+      ],
+      "phase_count": 3,
+      "max_steps": 5,
+      "description": "Three-step CRM lead dedup pipeline with route, payload, and auth adaptation."
+    },
+    {
+      "scenario_id": "billing-tax-reconciliation",
+      "workflow_id": "billing_tax_reconciliation",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "3-step",
+      "service_domain": "billing,finance,identity",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "billing",
+        "finance",
+        "identity"
+      ],
+      "phase_count": 3,
+      "max_steps": 5,
+      "description": "Three-step tax reconciliation workflow across billing and finance."
+    },
+    {
+      "scenario_id": "identity-access-review",
+      "workflow_id": "identity_access_review",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "3-step",
+      "service_domain": "identity,hr,analytics",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "identity",
+        "hr",
+        "analytics"
+      ],
+      "phase_count": 3,
+      "max_steps": 5,
+      "description": "Three-step identity access review with auth, route, and payload repair."
+    },
+    {
+      "scenario_id": "support-sla-breach-export",
+      "workflow_id": "support_sla_breach_export",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "eval",
+      "workflow_length": "2-step",
+      "service_domain": "support,analytics",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "support",
+        "analytics"
+      ],
+      "phase_count": 2,
+      "max_steps": 4,
+      "description": "Support SLA export route repair followed by analytics export payload repair."
+    },
+    {
+      "scenario_id": "finance-closebook-attestation",
+      "workflow_id": "finance_closebook_attestation",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "3-step",
+      "service_domain": "finance,identity,analytics",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "repairable",
+      "app_stack": [
+        "finance",
+        "identity",
+        "analytics"
+      ],
+      "phase_count": 3,
+      "max_steps": 5,
+      "description": "Finance closebook workflow with auth, payload, and route drift."
+    },
+    {
+      "scenario_id": "identity-access-token-missing",
+      "workflow_id": "identity_access_token_missing",
+      "validation_tier": "world-model",
+      "execution_mode": "simulated",
+      "split": "train",
+      "workflow_length": "1-step",
+      "service_domain": "identity,analytics",
+      "randomization_profile": "seeded_surface_v1",
+      "benchmark_partition": "unrecoverable",
+      "app_stack": [
+        "identity",
+        "analytics"
+      ],
+      "phase_count": 1,
+      "max_steps": 2,
+      "description": "Single-step unrecoverable auth abstention benchmark scenario."
+    }
+  ]
+}

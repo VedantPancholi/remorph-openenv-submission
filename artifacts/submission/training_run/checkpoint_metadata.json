@@ -1,0 +1,27 @@
+{
+  "policy_type": "supervised_structured_policy",
+  "seed": 42,
+  "train_manifest": "artifacts/submission/splits/train_manifest.json",
+  "eval_manifest": "artifacts/submission/splits/eval_manifest.json",
+  "model_config": {
+    "learner": "supervised_structured_policy",
+    "route_strategy": "max_confidence_candidate",
+    "payload_strategy": "expected_request_body",
+    "auth_strategy": "required_headers",
+    "abstain_strategy": "partition_gate",
+    "average_route_confidence": 0.885,
+    "payload_hint_coverage": 1.0,
+    "observed_tenant_aliases": [
+      "east",
+      "north",
+      "west"
+    ],
+    "counts": {
+      "route_examples": 8,
+      "payload_examples": 7,
+      "auth_examples": 6,
+      "abstain_examples": 1,
+      "training_example_count": 22
+    }
+  }
+}
