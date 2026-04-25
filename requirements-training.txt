@@ -1,0 +1,8 @@
+-r requirements.txt
+
+accelerate
+datasets
+peft
+torch
+transformers
+trl

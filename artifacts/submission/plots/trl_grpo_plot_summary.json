@@ -1,0 +1,11 @@
+{
+  "status": "ok",
+  "metrics_path": "artifacts/submission/trl_grpo_run/trl_grpo_metrics.json",
+  "row_count": 2,
+  "smoothing_window": 5,
+  "artifacts": {
+    "train/reward": "artifacts/submission/plots/trl_train_reward.png",
+    "train/reward_std": "artifacts/submission/plots/trl_train_reward_std.png",
+    "train/frac_reward_zero_std": "artifacts/submission/plots/trl_train_frac_reward_zero_std.png"
+  }
+}

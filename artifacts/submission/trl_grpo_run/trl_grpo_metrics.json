@@ -1,0 +1,22 @@
+{
+  "metrics": [
+    {
+      "step": 0,
+      "train/reward": 0.0,
+      "train/reward_std": 0.0,
+      "train/frac_reward_zero_std": 1.0,
+      "raw_reward": 0.0,
+      "success": 0.0,
+      "note": "episode_reset"
+    },
+    {
+      "step": 1,
+      "train/reward": 0.5263,
+      "train/reward_std": 0.0,
+      "train/frac_reward_zero_std": 1.0,
+      "raw_reward": -3.0,
+      "success": 0.0,
+      "note": "intentional_no_op_probe"
+    }
+  ]
+}

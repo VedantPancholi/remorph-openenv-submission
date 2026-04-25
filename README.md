@@ -35,6 +35,9 @@ python scripts/evaluate_submission.py --policy baseline --split eval --train-man
 python scripts/evaluate_submission.py --policy supervised --split eval --train-manifest artifacts/submission/splits/train_manifest.json --eval-manifest artifacts/submission/splits/eval_manifest.json
 python scripts/evaluate_submission.py --policy adaptive_reference --split eval --train-manifest artifacts/submission/splits/train_manifest.json --eval-manifest artifacts/submission/splits/eval_manifest.json
 python scripts/generate_submission_plots.py
+python scripts/generate_grpo_dataset.py
+python scripts/train_trl_grpo.py --dry-run --train-path artifacts/submission/grpo_dataset/train_prompts.jsonl
+python scripts/plot_trl_grpo.py
 openenv validate
 ```
 
@@ -86,8 +89,43 @@ Measurable support for that loop:
 - `Observe`: partially observable per-phase workflow state with visible tools, app stack, current step, and prior actions
 - `Act`: structured repair or abstention actions
 - `Reward`: per-step normalized reward plus raw reward breakdown
-- `Learn`: replay-memory training in `scripts/train_submission.py`
+- `Learn`: supervised structured training in `scripts/train_submission.py`, plus optional TRL GRPO environment training in `scripts/train_trl_grpo.py`
 - `Repeat`: multi-step workflows with `done=False` intermediate transitions
+
+## TRL GRPO training
+
+The submission includes a production-oriented TRL adapter at `remorph_openenv/trl_env.py`.
+It wraps ReMorph actions as tool-call methods (`repair_route`, `repair_payload`, `repair_auth`,
+`abstain`, and `no_op`) so `GRPOTrainer(environment_factory=...)` can train against the
+environment loop instead of a static dataset.
+
+Fast plumbing check:
+
+```bash
+python scripts/generate_grpo_dataset.py
+python scripts/train_trl_grpo.py --dry-run --train-path artifacts/submission/grpo_dataset/train_prompts.jsonl
+python scripts/plot_trl_grpo.py
+```
+
+GPU training setup:
+
+```bash
+pip install -r requirements-training.txt
+python scripts/train_trl_grpo.py \
+  --train \
+  --train-path artifacts/submission/grpo_dataset/train_prompts.jsonl \
+  --eval-path artifacts/submission/grpo_dataset/eval_prompts.jsonl \
+  --model Qwen/Qwen2.5-0.5B-Instruct \
+  --max-steps 100 \
+  --num-generations 4 \
+  --gradient-accumulation-steps 4
+```
+
+Budget guidance for the hackathon credit: start with the dry run, then a short T4 run
+(`--max-steps 100`) before spending more time on a longer run. The generated GRPO
+dataset uses non-overlapping train/eval seed ranges to reduce memorization risk. The
+supervised structured policy remains the reliable benchmark backbone; TRL GRPO is the
+environment-training proof.
 
 ## Enterprise workflow scope
 
@@ -185,6 +223,8 @@ Current clean-repo benchmark evidence:
 - live-local demo across all `8` live scenarios: `passed`
 - seeded split generation: `passed`
 - supervised training artifacts: `passed`
+- TRL GRPO dry-run plumbing: `passed`
+- GRPO seeded prompt dataset: `500` train rows, `60` eval rows by default
 - benchmark report generation: `passed`
 
 ## Next Phase
@@ -232,10 +272,13 @@ Use this checklist to manually verify the benchmark before the Hugging Face Spac
 6. Verify supervised manifest-driven training.
    Run `python scripts/train_submission.py --output-dir artifacts/submission/training_run --seed 42 --train-manifest artifacts/submission/splits/train_manifest.json --eval-manifest artifacts/submission/splits/eval_manifest.json`
    Expected: train success `1.0`, eval success `1.0`, TRL dataset export present.
-7. Verify report and plots.
+7. Verify TRL/OpenEnv training plumbing.
+   Run `python scripts/generate_grpo_dataset.py && python scripts/train_trl_grpo.py --dry-run --train-path artifacts/submission/grpo_dataset/train_prompts.jsonl && python scripts/plot_trl_grpo.py`
+   Expected: `500` train rows, `60` eval rows, `dry_run_ok`, one environment step returns reward feedback, and dark-grid TRL plots are generated.
+8. Verify report and plots.
    Run `python scripts/generate_submission_plots.py`
    Expected: benchmark plots under `artifacts/submission/plots/` and reports under `artifacts/submission/`.
-8. Verify OpenEnv compatibility.
+9. Verify OpenEnv compatibility.
    Run `openenv validate`
    Expected: `Ready for multi-mode deployment`
 
@@ -251,8 +294,11 @@ It is designed to show this exact sequence:
 2. validate OpenEnv and run smoke tests
 3. train the supervised structured policy
 4. evaluate `baseline`, `supervised`, and `adaptive_reference` on held-out eval
-5. generate plots
-6. inspect the benchmark report
+5. generate the seeded GRPO train/eval prompt dataset
+6. run the TRL GRPO dry-run and plot its metrics
+7. optionally run short GPU TRL GRPO training
+8. generate plots
+9. inspect the benchmark report
 
 ## Files
 
@@ -264,11 +310,15 @@ It is designed to show this exact sequence:
 - `remorph_openenv/training.py`: split-aware training, telemetry, and benchmark reporting
 - `scripts/inference.py`: deterministic local inference over all built-in scenarios
 - `scripts/generate_splits.py`: checked-in train/eval split manifest generator
+- `scripts/generate_grpo_dataset.py`: seeded GRPO prompt dataset generator
 - `scripts/live_local_demo.py`: runnable Phase 2 live-local demo
 - `scripts/start_live_local_server.py`: optional manual FastAPI gateway runner
 - `scripts/train_submission.py`: Phase 3 supervised learner training entrypoint
 - `scripts/train_submission.py --train-manifest ... --eval-manifest ...`: manifest-driven training entrypoint
+- `scripts/train_trl_grpo.py`: optional TRL GRPO training entrypoint using `environment_factory`
+- `scripts/plot_trl_grpo.py`: plots TRL dry-run or real GRPO training metrics
 - `scripts/evaluate_submission.py`: policy evaluation entrypoint for baseline, supervised, replay, and adaptive reference
+- `remorph_openenv/trl_env.py`: TRL tool-call environment wrapper and GRPO prompt builder
 - `artifacts/submission/telemetry/rollouts.jsonl`: step-level benchmark telemetry
 - `artifacts/submission/benchmark_report.md`: benchmark summary for judges
 - `artifacts/submission/training_run/trl_dataset.jsonl`: TRL-ready serialized dataset export
