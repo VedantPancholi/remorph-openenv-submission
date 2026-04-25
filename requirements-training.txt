@@ -7,3 +7,5 @@ torch
 # TRL GRPO + environment_factory needs transformers>=5.2 (see trl GRPOTrainer __init__)
 transformers>=5.2.0,<6
 trl
+# TRL GRPO + tools / environment_factory path needs jmespath (trl grpo_trainer.py).
+jmespath>=1.0.0,<2

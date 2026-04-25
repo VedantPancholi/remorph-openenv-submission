@@ -67,7 +67,8 @@ def _require_transformers_for_grpo_environment_factory() -> None:
             f"transformers {ver} is too old for GRPOTrainer(environment_factory=...) "
             f"(need >= {_MIN_TRANSFORMERS_FOR_GRPO_ENV[0]}.{_MIN_TRANSFORMERS_FOR_GRPO_ENV[1]}). "
             "Run: pip install -U --force-reinstall 'transformers>=5.2.0,<6' "
-            "and use pip_constraints.txt with requirements-training.txt, then retry."
+            "and use pip_constraints.txt with requirements-training.txt, then retry. "
+            "For tool-calling GRPO, also: pip install 'jmespath>=1.0,<2'."
         )
 
 
@@ -269,6 +270,12 @@ def run_training(
         from transformers import AutoTokenizer  # type: ignore
 
         _require_transformers_for_grpo_environment_factory()
+        try:
+            import jmespath  # noqa: F401
+        except ImportError as exc:
+            raise RuntimeError(
+                "TRL GRPO with tools requires jmespath. Install: pip install 'jmespath>=1.0,<2'"
+            ) from exc
         from trl import GRPOConfig, GRPOTrainer  # type: ignore
     except Exception as exc:  # noqa: BLE001
         raise RuntimeError(
