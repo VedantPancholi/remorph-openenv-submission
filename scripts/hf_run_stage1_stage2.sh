@@ -5,7 +5,10 @@ REPO_URL="${REPO_URL:-https://github.com/VedantPancholi/remorph-openenv-submissi
 REPO_DIR="${REPO_DIR:-remorph-openenv-submission}"
 MODEL="${MODEL:-Qwen/Qwen2.5-0.5B-Instruct}"
 
-if [[ ! -d "$REPO_DIR" ]]; then
+if [[ -f scripts/hf_run_stage1_stage2.sh ]]; then
+  REPO_DIR="."
+fi
+if [[ "$REPO_DIR" != "." && ! -d "$REPO_DIR" ]]; then
   git clone --depth 1 "$REPO_URL" "$REPO_DIR"
 fi
 cd "$REPO_DIR"
