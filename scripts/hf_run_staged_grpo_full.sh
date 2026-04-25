@@ -22,10 +22,12 @@ if [[ "$REPO_DIR" != "." && ! -d "$REPO_DIR" ]]; then
 fi
 cd "$REPO_DIR"
 
-pip install -U pip
+pip install -U pip setuptools wheel
 pip install -r requirements.txt
-pip install -r requirements-training.txt
-pip install --upgrade "transformers>=5.2.0,<6"
+pip install -r requirements-training.txt -c pip_constraints.txt
+# Colab/HF: dependency solver sometimes leaves transformers 5.0.x; force before TRL runs.
+pip install --upgrade --force-reinstall --no-cache-dir "transformers>=5.2.0,<6"
+python3 -c "import transformers as t; v=t.__version__.split('+')[0]; p=tuple(int(x) for x in v.split('.')[:3]); assert p>=(5,2,0), f'transformers {t.__version__} < 5.2 — fix pip install'"
 
 python scripts/generate_grpo_dataset.py \
   --output-dir artifacts/submission/grpo_dataset_500 \

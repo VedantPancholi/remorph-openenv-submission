@@ -40,6 +40,36 @@ from remorph_openenv.trl_env import (  # noqa: E402
 
 DEFAULT_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
 
+_MIN_TRANSFORMERS_FOR_GRPO_ENV = (5, 2, 0)
+
+
+def _transformers_version_tuple(version_str: str) -> tuple[int, int, int]:
+    base = version_str.split("+")[0].split("rc")[0].strip()
+    parts: list[int] = []
+    for seg in base.split(".")[:3]:
+        if seg.isdigit():
+            parts.append(int(seg))
+        else:
+            break
+    while len(parts) < 3:
+        parts.append(0)
+    return (parts[0], parts[1], parts[2])
+
+
+def _require_transformers_for_grpo_environment_factory() -> None:
+    """TRL raises at GRPOTrainer init if transformers is too old; fail fast with a clear fix."""
+
+    import transformers  # type: ignore
+
+    ver = getattr(transformers, "__version__", "0")
+    if _transformers_version_tuple(ver) < _MIN_TRANSFORMERS_FOR_GRPO_ENV:
+        raise RuntimeError(
+            f"transformers {ver} is too old for GRPOTrainer(environment_factory=...) "
+            f"(need >= {_MIN_TRANSFORMERS_FOR_GRPO_ENV[0]}.{_MIN_TRANSFORMERS_FOR_GRPO_ENV[1]}). "
+            "Run: pip install -U --force-reinstall 'transformers>=5.2.0,<6' "
+            "and use pip_constraints.txt with requirements-training.txt, then retry."
+        )
+
 
 def run_dry_run(
     *,
@@ -237,6 +267,8 @@ def run_training(
         import torch  # type: ignore
         from datasets import Dataset  # type: ignore
         from transformers import AutoTokenizer  # type: ignore
+
+        _require_transformers_for_grpo_environment_factory()
         from trl import GRPOConfig, GRPOTrainer  # type: ignore
     except Exception as exc:  # noqa: BLE001
         raise RuntimeError(

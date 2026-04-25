@@ -1,0 +1,3 @@
+# Used with: pip install -r requirements-training.txt -c pip_constraints.txt
+# TRL GRPOTrainer(environment_factory=...) requires transformers>=5.2.0 (see trl grpo_trainer.py).
+transformers>=5.2.0,<6
