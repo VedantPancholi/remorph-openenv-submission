@@ -4,5 +4,6 @@ accelerate
 datasets
 peft
 torch
-transformers
+# TRL GRPO + environment_factory needs transformers>=5.2 (see trl GRPOTrainer __init__)
+transformers>=5.2.0,<6
 trl

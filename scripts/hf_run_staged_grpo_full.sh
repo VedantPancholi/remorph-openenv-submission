@@ -25,6 +25,7 @@ cd "$REPO_DIR"
 pip install -U pip
 pip install -r requirements.txt
 pip install -r requirements-training.txt
+pip install --upgrade "transformers>=5.2.0,<6"
 
 python scripts/generate_grpo_dataset.py \
   --output-dir artifacts/submission/grpo_dataset_500 \

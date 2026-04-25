@@ -4,15 +4,16 @@ The script intentionally supports a dependency-light dry run:
 
     python scripts/train_trl_grpo.py --dry-run
 
-Real training requires the optional training stack:
+Real training requires the optional training stack (transformers>=5.2 for TRL
+``environment_factory``):
 
-    pip install trl transformers datasets accelerate torch peft
+    pip install "transformers>=5.2" trl datasets accelerate torch peft
     python scripts/train_trl_grpo.py --train --model Qwen/Qwen2.5-0.5B-Instruct
 
 Faster local CPU setup (avoids multi-gigabyte CUDA wheels; use GPU wheels on HF/Colab):
 
     uv pip install --python .venv/bin/python torch --index-url https://download.pytorch.org/whl/cpu
-    uv pip install --python .venv/bin/python trl accelerate peft datasets transformers
+    uv pip install --python .venv/bin/python "transformers>=5.2" trl accelerate peft datasets
 """
 
 from __future__ import annotations
