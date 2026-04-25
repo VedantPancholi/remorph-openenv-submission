@@ -1,0 +1,41 @@
+{
+  "status": "dry_run_ok",
+  "row_count": 40,
+  "train_path": null,
+  "first_scenario_id": "identity-hr-user-provisioning",
+  "first_seed": 42,
+  "first_prompt": [
+    {
+      "role": "system",
+      "content": "You are a ReMorph API-drift repair agent.\nInspect the observation, call exactly one repair/abstention tool for the current failure, then stop.\nNever invent credentials. For unrecoverable auth failures, use abstain instead of repair_auth."
+    },
+    {
+      "role": "user",
+      "content": "Repair the next ReMorph API-drift episode. Use the available tools; do not answer with raw JSON unless a tool asks for a JSON string argument. Scenario id: identity-hr-user-provisioning. Training seed: 42."
+    }
+  ],
+  "initial_observation_preview": "Observation JSON:\n{\"app_stack\": [\"identity\", \"hr\"], \"benchmark_partition\": \"repairable\", \"candidate_routes\": [{\"confidence\": 1.0, \"method\": \"POST\", \"path\": \"/hr/v1/users/provision\", \"source\": \"service_catalog\"}], \"contract_hints\": {\"hint_visibility\": \"low\", \"repair_strategy\": \"auth_rewrite\", \"required_headers\": [\"x-api-key\"], \"tenant_alias\": \"north\"}, \"episode_id\": \"identity-hr-user-provisioning\", \"error_signal\": {\"message\": \"HR provisioning now requires tenant routing.\", \"signals\": {\"current_app\": \"identity\", \"missing_header\": \"x-api-key\"}, \"status_code\": 414}, \"failed_request\": {\"body\": {\"employee_id\": \"E-102\", \"team\": \"north-platform\"}, \"headers\": {\"Authorization\": \"Bearer demo-token\"}, \"method\": \"POST\", \"path\": \"/hr/v1/users/provision\"}, \"prior_actions\": [], \"remaining_steps\": 3, \"retry_count\": 0, \"scenario_type\": \"auth_drift\", \"step_index\": 0, \"visible_tools\": [{\"app\": \"identity\", \"method\": \"GET\", \"tool_name\": \"identity.tenant.resolve\"}, {\"app\": \"hr\", \"method\": \"POST\", \"tool_name\"",
+  "feedback_preview": "{\"done\": false, \"done_reason\": \"retry_available\", \"next_observation\": {\"app_stack\": [\"identity\", \"hr\"], \"benchmark_partition\": \"repairable\", \"candidate_routes\": [{\"confidence\": 1.0, \"method\": \"POST\", \"path\": \"/hr/v1/users/provision\", \"source\": \"service_catalog\"}], \"contract_hints\": {\"hint_visibility\": \"low\", \"repair_strategy\": \"auth_rewrite\", \"required_headers\": [\"x-api-key\"], \"tenant_alias\": \"north\"}, \"episode_id\": \"identity-hr-user-provisioning\", \"error_signal\": {\"message\": \"HR provisioning now requires tenant routing.\", \"signals\": {\"current_app\": \"identity\", \"missing_header\": \"x-api-key\"}, \"status_code\": 414}, \"failed_request\": {\"body\": {\"employee_id\": \"E-102\", \"team\": \"north-platform\"}, \"headers\": {\"Authorization\": \"Bearer demo-token\"}, \"method\": \"POST\", \"path\": \"/hr/v1/users/provision\"}, \"prior_actions\": [{\"action_type\": \"no_op\", \"body_patch\": null, \"header_patch\": null, \"query_patch\": null, \"reason\": \"Dry run intentionally checks that low-quality actions receive feedback.\", \"targ",
+  "reward_after_no_op": 0.5263,
+  "raw_reward_after_no_op": -3.0,
+  "metrics": [
+    {
+      "step": 0,
+      "train/reward": 0.0,
+      "train/reward_std": 0.0,
+      "train/frac_reward_zero_std": 1.0,
+      "raw_reward": 0.0,
+      "success": 0.0,
+      "note": "episode_reset"
+    },
+    {
+      "step": 1,
+      "train/reward": 0.5263,
+      "train/reward_std": 0.0,
+      "train/frac_reward_zero_std": 1.0,
+      "raw_reward": -3.0,
+      "success": 0.0,
+      "note": "intentional_no_op_probe"
+    }
+  ]
+}

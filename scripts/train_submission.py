@@ -26,6 +26,11 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--train-manifest", default="artifacts/submission/splits/train_manifest.json")
     parser.add_argument("--eval-manifest", default="artifacts/submission/splits/eval_manifest.json")
+    parser.add_argument(
+        "--run-tag",
+        default="",
+        help="Optional human-readable label (for example: local_v2 or colab_final).",
+    )
     args = parser.parse_args()
 
     output_dir = REPO_ROOT / args.output_dir
@@ -76,6 +81,7 @@ def main() -> None:
         "train_manifest": str(train_manifest_path.relative_to(REPO_ROOT)).replace("\\", "/"),
         "eval_manifest": str(eval_manifest_path.relative_to(REPO_ROOT)).replace("\\", "/"),
         "model_config": result["model_config"],
+        "run_tag": args.run_tag or None,
     }
     trl_dataset_rows = build_trl_dataset_rows(result["train_dataset"], split="train") + build_trl_dataset_rows(
         result["eval_dataset"],
@@ -97,6 +103,36 @@ def main() -> None:
     (REPO_ROOT / "artifacts" / "submission" / "benchmark_report.md").write_text(report["markdown"], encoding="utf-8")
     (REPO_ROOT / "artifacts" / "submission" / "benchmark_report.json").write_text(report["json"], encoding="utf-8")
 
+    progress_path = output_dir / "training_progress.json"
+    progress_payload: dict[str, object]
+    if progress_path.exists():
+        progress_payload = json.loads(progress_path.read_text(encoding="utf-8"))
+    else:
+        progress_payload = {"runs": [], "best_run": None}
+    runs = list(progress_payload.get("runs") or [])
+    run_id = f"run_{len(runs) + 1:03d}"
+    run_record = {
+        "run_id": run_id,
+        "run_tag": args.run_tag or None,
+        "seed": args.seed,
+        "train_manifest": str(train_manifest_path.relative_to(REPO_ROOT)).replace("\\", "/"),
+        "eval_manifest": str(eval_manifest_path.relative_to(REPO_ROOT)).replace("\\", "/"),
+        "final_train_success_rate": training_summary["final_train_success_rate"],
+        "final_eval_success_rate": training_summary["final_eval_success_rate"],
+        "final_eval_average_raw_reward": training_summary["final_eval_average_raw_reward"],
+        "training_example_count": training_summary["training_example_count"],
+    }
+    runs.append(run_record)
+    best_run = max(
+        runs,
+        key=lambda row: (
+            float(row.get("final_eval_success_rate") or 0.0),
+            float(row.get("final_eval_average_raw_reward") or -9999.0),
+        ),
+    )
+    progress_payload = {"runs": runs, "best_run": best_run}
+    progress_path.write_text(json.dumps(progress_payload, indent=2), encoding="utf-8")
+
     telemetry_count = write_telemetry_jsonl(result["telemetry"], telemetry_dir / "rollouts.jsonl")
 
     print(
@@ -107,6 +143,8 @@ def main() -> None:
                 "telemetry_rows": telemetry_count,
                 "trl_dataset_rows": len(trl_dataset_rows),
                 "training_summary": training_summary,
+                "run_id": run_id,
+                "best_run": best_run,
             },
             indent=2,
         )

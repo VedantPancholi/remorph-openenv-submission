@@ -1,0 +1,38 @@
+{
+  "status": "ok",
+  "execution_mode": "simulated",
+  "train_seed_start": 3000,
+  "train_seed_count": 150,
+  "eval_seed_start": 5000,
+  "eval_seed_count": 20,
+  "train_seed_min": 3000,
+  "train_seed_max": 3149,
+  "eval_seed_min": 5000,
+  "eval_seed_max": 5019,
+  "seed_overlap_count": 0,
+  "train_row_count": 1500,
+  "eval_row_count": 120,
+  "train_path": "artifacts/submission/grpo_dataset_1500/train_prompts.jsonl",
+  "eval_path": "artifacts/submission/grpo_dataset_1500/eval_prompts.jsonl",
+  "scenario_type_counts": {
+    "train": {
+      "auth_drift": 600,
+      "payload_drift": 450,
+      "route_drift": 450
+    },
+    "eval": {
+      "auth_drift": 20,
+      "payload_drift": 20,
+      "route_drift": 80
+    }
+  },
+  "benchmark_partition_counts": {
+    "train": {
+      "repairable": 1350,
+      "unrecoverable": 150
+    },
+    "eval": {
+      "repairable": 120
+    }
+  }
+}

@@ -8,3 +8,7 @@ ReMorphOpenEnv/
 artifacts/*
 !artifacts/submission/
 !artifacts/submission/**
+submission_strict.txt
+example_train.txt
+prompt1.txt
+unsloth_2048.ipynb

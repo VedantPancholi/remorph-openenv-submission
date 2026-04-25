@@ -1,0 +1,26 @@
+{
+  "runs": [
+    {
+      "run_id": "run_001",
+      "run_tag": "local_checkpoint_test",
+      "seed": 42,
+      "train_manifest": "artifacts/submission/splits/train_manifest.json",
+      "eval_manifest": "artifacts/submission/splits/eval_manifest.json",
+      "final_train_success_rate": 1.0,
+      "final_eval_success_rate": 1.0,
+      "final_eval_average_raw_reward": 19.5,
+      "training_example_count": 22
+    }
+  ],
+  "best_run": {
+    "run_id": "run_001",
+    "run_tag": "local_checkpoint_test",
+    "seed": 42,
+    "train_manifest": "artifacts/submission/splits/train_manifest.json",
+    "eval_manifest": "artifacts/submission/splits/eval_manifest.json",
+    "final_train_success_rate": 1.0,
+    "final_eval_success_rate": 1.0,
+    "final_eval_average_raw_reward": 19.5,
+    "training_example_count": 22
+  }
+}

@@ -23,5 +23,6 @@
       "abstain_examples": 1,
       "training_example_count": 22
     }
-  }
+  },
+  "run_tag": "local_checkpoint_test"
 }
