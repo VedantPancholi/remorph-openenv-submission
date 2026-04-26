@@ -155,6 +155,83 @@ chmod +x scripts/hf_run_staged_grpo_full.sh
 bash scripts/hf_run_staged_grpo_full.sh
 ```
 
+### Track A fast — small data, low steps, bucket backup, always uploads
+
+Use this when you want the same **fast two-stage** setup as the Track A / “Sachin fast”
+jobs (`grpo_dataset_tracka_120` → `tracka_v1`, then `tracka_240` → `tracka_v2`), with:
+
+1. **HF Storage Bucket (read/write mount)** — mirrors `artifacts/submission` several times during the run so weights and plots survive even if the job container disappears before you download anything.
+2. **HF Dataset repo** — **always** runs `upload_folder` at the end (this script has **no** `SKIP_UPLOAD=1` path).
+
+**Where things land (two different places on purpose):**
+
+| Layer | What it is | Typical URL / path |
+| --- | --- | --- |
+| **Bucket mirror** | Your [HF Storage Bucket](https://huggingface.co/docs/hub/storage-buckets); mounted inside the job | Files under `/mnt/trl_backup/<RUN_ID>/` (or whatever mount you choose) — full copy of `artifacts/submission` after each milestone |
+| **Dataset handoff** | A **Dataset** repo on the Hub | `https://huggingface.co/datasets/<HF_DATASET_REPO>/tree/main/<UPLOAD_PATH_IN_REPO>` — same tree uploaded for judges / Spaces / `snapshot_download` |
+
+Create a bucket under your org/user first, then run a job that mounts it and sets `PERSIST_ROOT` to the mount path. See [Jobs: mount a volume](https://huggingface.co/docs/huggingface_hub/guides/jobs#mount-a-volume).
+
+**Local / any GPU:**
+
+```bash
+bash scripts/hf_run_track_a_fast_persist.sh
+```
+
+**HF Jobs (recommended pattern):** clone repo, run the script, pass secrets, mount bucket, force unique `UPLOAD_PATH_IN_REPO` if you want:
+
+```bash
+hf jobs run -d --flavor a10g-large --timeout 4h --secrets HF_TOKEN \
+  -e REPO_URL=https://github.com/VedantPancholi/remorph-openenv-submission.git \
+  -e HF_DATASET_REPO=Jenish31/remorph-training-artifacts \
+  -e UPLOAD_PATH_IN_REPO=tracka_fast_a10g_2026_04_27 \
+  -e PERSIST_ROOT=/mnt/trl_backup \
+  -e MAX_STEPS_V1=8 -e MAX_STEPS_V2=12 \
+  -v hf://buckets/Jenish31/your-bucket-name:/mnt/trl_backup \
+  python:3.12 bash -lc \
+  'git clone --depth 1 "$REPO_URL" remorph-openenv-submission && cd remorph-openenv-submission && bash scripts/hf_run_track_a_fast_persist.sh'
+```
+
+Replace `Jenish31/your-bucket-name` with your real bucket id. If you omit `-v` and `PERSIST_ROOT`, the script still **uploads to the Dataset**; you only lose the extra on-disk mirror during the run.
+
+**Defaults:** `MAX_STEPS_V1=8`, `MAX_STEPS_V2=12`; `UPLOAD_PATH_IN_REPO` defaults to `tracka_fast_<UTC timestamp>` if unset.
+
+### Two-stage 500 → 1500 (no stage 3) — fast steps + mandatory Hub upload + optional bucket
+
+Use [`scripts/hf_run_staged_grpo_two_stage_persist.sh`](scripts/hf_run_staged_grpo_two_stage_persist.sh) when you want **real 500 / 1500 prompt rows**, **only two training stages**, defaults **`MAX_STEPS_V1=4`** and **`MAX_STEPS_V2=8`**, and **every artifact** pushed to a **public Dataset** repo (free browser access) plus optional **Storage Bucket** mirrors during the run.
+
+**After the job succeeds, open this URL** (replace with your values):
+
+`https://huggingface.co/datasets/<HF_DATASET_REPO>/tree/main/<UPLOAD_PATH_IN_REPO>`
+
+You should see at least:
+
+- `grpo_dataset_500/`, `grpo_dataset_1500/` — generated JSONL datasets  
+- `trl_grpo_run_v1/model/`, `trl_grpo_run_v2/model/` — saved adapters / weights  
+- `plots/stage1/`, `plots/stage2/`, `plots/master/` — TRL charts  
+- `hub_upload_manifest.json` — pointer to this folder on the Hub  
+- `best_run_promotion.json`, `frontend_payload.json`, etc.
+
+**Ready-to-paste HF Job** (Dataset upload required; bucket optional — remove `-v` / `PERSIST_ROOT` if you only want Hub):
+
+```bash
+hf jobs run -d --flavor a10g-large --timeout 6h --secrets HF_TOKEN \
+  -e REPO_URL=https://github.com/VedantPancholi/remorph-openenv-submission.git \
+  -e HF_DATASET_REPO=Jenish31/remorph-training-artifacts \
+  -e UPLOAD_PATH_IN_REPO=staged2_500_1500_v4_v8_2026_04_27 \
+  -e MAX_STEPS_V1=4 \
+  -e MAX_STEPS_V2=8 \
+  -e EVAL_STEPS=2 \
+  -e PERSIST_ROOT=/mnt/trl_backup \
+  -v hf://buckets/Jenish31/your-bucket-name:/mnt/trl_backup \
+  python:3.12 bash -lc \
+  'git clone --depth 1 "$REPO_URL" remorph-openenv-submission && cd remorph-openenv-submission && bash scripts/hf_run_staged_grpo_two_stage_persist.sh'
+```
+
+- **Push the script to GitHub first** (or point `REPO_URL` at a fork/branch that contains `hf_run_staged_grpo_two_stage_persist.sh`).  
+- **Token** must be allowed to **write** `HF_DATASET_REPO`.  
+- **Bucket:** create one under your user/org, replace `your-bucket-name`. Omit bucket lines if you only rely on the Dataset copy.
+
 ### Space deployment checks
 
 Before handoff to judges or frontend:
@@ -223,6 +300,43 @@ python scripts/promote_long_run_outputs.py
 
 This writes `artifacts/submission/best_run_promotion.json` using the rule:
 highest `eval_reward_best`, tie-broken by lower `frac_reward_zero_std_last`.
+
+### Where GRPO artifacts live (local vs Hub vs Space)
+
+Training and plotting scripts write under **`artifacts/submission/`** in the repo clone that ran the job (your laptop or an HF Job workspace). Typical locations:
+
+| Artifact | Path (relative to repo root) |
+| --- | --- |
+| Track A stage 1 model | `artifacts/submission/trl_grpo_run_tracka_v1/model` |
+| Track A stage 2 model (often best) | `artifacts/submission/trl_grpo_run_tracka_v2/model` |
+| Training summaries / metrics | `artifacts/submission/trl_grpo_run_tracka_v2/trl_grpo_training_summary.json`, `trl_grpo_metrics.json` |
+| TRL plots | `artifacts/submission/plots/tracka_stage1/`, `plots/tracka_stage2/`, `plots/tracka_master/` |
+| UI / SQLite handoff | `artifacts/submission/frontend_payload.json`, `frontend_bridge.sqlite3` |
+| Best-run pointer | `artifacts/submission/best_run_promotion.json` |
+
+**HF Jobs:** Paths are the same inside the ephemeral clone. When the job finishes, that disk goes away unless you **upload** or **download** outputs.
+
+**Hugging Face Hub:** Files do **not** appear on a Dataset or Model repo automatically. Inline Track A commands often have **no** upload step. To publish the whole `artifacts/submission` tree (or refresh after a local run):
+
+```bash
+pip install huggingface_hub
+export HF_TOKEN=...   # token with write access to the target namespace
+export HF_DATASET_REPO=YourNamespace/your-dataset
+export UPLOAD_PATH_IN_REPO=track_a_run_2026_04_26
+python scripts/upload_submission_artifacts_to_hub.py
+# Dry run: python scripts/upload_submission_artifacts_to_hub.py --dry-run
+```
+
+Alternatively, run `scripts/hf_run_quick_confidence.sh` or `scripts/hf_run_staged_grpo_full.sh` with **`SKIP_UPLOAD` unset or `0`** (see those scripts for `HF_DATASET_REPO` / `UPLOAD_PATH_IN_REPO`).
+
+**Spaces:** A Space is a **separate** Git repo. Training does not push weights into the Space. Commit/copy the promoted model directory into the Space repo, or `from_pretrained` a Hub model id after upload, and redeploy.
+
+**Quick audit on disk:**
+
+```bash
+python scripts/verify_submission_artifacts.py
+python scripts/verify_submission_artifacts.py --strict   # exit 1 if promotion/model missing
+```
 
 ## Enterprise workflow scope
 
@@ -414,6 +528,10 @@ It is designed to show this exact sequence:
 - `scripts/train_submission.py --train-manifest ... --eval-manifest ...`: manifest-driven training entrypoint
 - `scripts/train_trl_grpo.py`: optional TRL GRPO training entrypoint using `environment_factory`
 - `scripts/plot_trl_grpo.py`: plots TRL dry-run or real GRPO training metrics
+- `scripts/verify_submission_artifacts.py`: print which GRPO / Track A paths exist under `artifacts/submission`
+- `scripts/upload_submission_artifacts_to_hub.py`: upload `artifacts/submission` to a Hub Dataset repo
+- `scripts/hf_run_track_a_fast_persist.sh`: Track A fast training, optional HF Bucket mirrors, mandatory Dataset upload
+- `scripts/hf_run_staged_grpo_two_stage_persist.sh`: 500 → 1500 two-stage GRPO, optional bucket mirror, mandatory Dataset upload
 - `scripts/evaluate_submission.py`: policy evaluation entrypoint for baseline, supervised, replay, and adaptive reference
 - `remorph_openenv/trl_env.py`: TRL tool-call environment wrapper and GRPO prompt builder
 - `artifacts/submission/telemetry/rollouts.jsonl`: step-level benchmark telemetry

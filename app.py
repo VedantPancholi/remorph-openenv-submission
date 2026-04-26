@@ -30,6 +30,13 @@ PLOT_FILES = [
     ("Average reward comparison", "avg_reward_comparison.png"),
 ]
 
+# Benchmark plots live under `plots/`; TRL / Track A runs often write `trl_*.png` under `plots/tracka_*`.
+_PLOT_FALLBACK_NAMES: dict[str, list[str]] = {
+    "loss_curve.png": ["trl_train_loss.png"],
+    "reward_curve.png": ["trl_train_reward.png"],
+}
+_PLOT_SUBDIRS = ("tracka_stage2", "tracka_stage1", "tracka_master", "master", "stage3", "stage2", "stage1")
+
 
 def _json(data: Any) -> Any:
     """Return a JSON-displayable object without leaking Pydantic internals."""
@@ -301,16 +308,52 @@ def benchmark_rows() -> list[list[Any]]:
         return [["report_error", str(exc)]]
 
 
+def _resolve_plot_file(filename: str) -> Path | None:
+    direct = PLOTS_DIR / filename
+    if direct.is_file():
+        return direct
+    for alt in _PLOT_FALLBACK_NAMES.get(filename, []):
+        for sub in _PLOT_SUBDIRS:
+            candidate = PLOTS_DIR / sub / alt
+            if candidate.is_file():
+                return candidate
+    return None
+
+
 def plot_value(filename: str) -> str | None:
-    path = PLOTS_DIR / filename
-    return str(path) if path.exists() else None
+    path = _resolve_plot_file(filename)
+    return str(path) if path else None
 
 
 def plot_message(filename: str) -> str:
-    path = PLOTS_DIR / filename
-    if path.exists():
+    if _resolve_plot_file(filename):
         return ""
-    return f"Plot not found yet: `artifacts/submission/plots/{filename}`"
+    return (
+        f"Plot not found yet: `artifacts/submission/plots/{filename}` "
+        f"(or TRL equivalent under `plots/tracka_*` / `plots/stage*`)"
+    )
+
+
+def _promotion_banner() -> str:
+    path = ROOT / "artifacts" / "submission" / "best_run_promotion.json"
+    if not path.is_file():
+        return ""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return ""
+    best = payload.get("best_run")
+    if not isinstance(best, dict):
+        return ""
+    lines = ["## Promoted GRPO run (from `best_run_promotion.json`)"]
+    if best.get("model_name"):
+        lines.append(f"- **Base model:** `{best['model_name']}`")
+    out = best.get("output_dir")
+    if isinstance(out, str) and out.strip():
+        lines.append(f"- **Saved adapter / weights:** `{out.strip()}`")
+    if best.get("eval_reward_best") is not None:
+        lines.append(f"- **Best eval reward (from summary):** `{best['eval_reward_best']}`")
+    return "\n".join(lines)
 
 
 INITIAL_SCENARIOS = _scenario_choices(EXECUTION_MODES[0])
@@ -321,6 +364,9 @@ with gr.Blocks(title="ReMorph OpenEnv Demo") as demo:
         "An OpenEnv environment where agents repair API drift, handle multi-step workflows, "
         "and abstain safely instead of hallucinating credentials."
     )
+    promo_md = _promotion_banner()
+    if promo_md:
+        gr.Markdown(promo_md)
 
     app_state = gr.State({})
 

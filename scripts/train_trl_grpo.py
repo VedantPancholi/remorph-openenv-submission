@@ -26,6 +26,8 @@ from pathlib import Path
 import sys
 from typing import Any
 from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor
+import functools
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -72,8 +74,6 @@ def _require_transformers_for_grpo_environment_factory() -> None:
         )
 
 
-
-
 def _ensure_tool_response_schema(*, processing_class: Any, model_name: str) -> None:
     """Ensure TRL can parse tool calls for templates not yet recognized by add_response_schema."""
 
@@ -98,6 +98,8 @@ def _ensure_tool_response_schema(*, processing_class: Any, model_name: str) -> N
             "Either use a model with a recognized chat template, or manually set "
             "tokenizer.response_schema before creating GRPOTrainer."
         ) from exc
+
+
 def run_dry_run(
     *,
     output_dir: Path,
@@ -248,18 +250,23 @@ def _trim_rows_for_max_prompt_tokens(
     *,
     chat_template_kwargs: dict[str, Any] | None,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    """Ensure each row's prompt encodes to at most max_tokens (TRL may omit max_prompt_length on GRPOConfig)."""
+    """Ensure each row's prompt encodes to at most max_tokens utilizing multithreading."""
+
+    worker = functools.partial(
+        _trim_row_prompt_to_max_tokens,
+        tokenizer=tokenizer,
+        max_tokens=max_tokens,
+        chat_template_kwargs=chat_template_kwargs,
+    )
 
     out: list[dict[str, Any]] = []
-    for row in rows:
-        adjusted = _trim_row_prompt_to_max_tokens(
-            row,
-            tokenizer,
-            max_tokens,
-            chat_template_kwargs=chat_template_kwargs,
-        )
-        if adjusted is not None:
-            out.append(adjusted)
+    
+    # Use ThreadPoolExecutor to prevent tokenizer pickling errors while accelerating token processing
+    with ThreadPoolExecutor() as executor:
+        results = list(executor.map(worker, rows))
+        
+    out = [r for r in results if r is not None]
+
     stats = {
         "input_rows": len(rows),
         "output_rows": len(out),
