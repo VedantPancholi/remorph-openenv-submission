@@ -367,6 +367,9 @@ def run_training(
         "max_prompt_length": max_prompt_tokens,
         "max_completion_length": max(128, int(max_completion_length)),
         "logging_steps": 1,
+        # Keep eval batch aligned with environment instances; TRL environment_factory
+        # currently expects prompt batch size not to exceed env count.
+        "per_device_eval_batch_size": max(1, int(per_device_train_batch_size)),
         "eval_strategy": "steps" if eval_rows else "no",
         "eval_steps": max(1, int(eval_steps)) if eval_rows else None,
         "save_strategy": "steps",
