@@ -72,6 +72,32 @@ def _require_transformers_for_grpo_environment_factory() -> None:
         )
 
 
+
+
+def _ensure_tool_response_schema(*, processing_class: Any, model_name: str) -> None:
+    """Ensure TRL can parse tool calls for templates not yet recognized by add_response_schema."""
+
+    if getattr(processing_class, "response_schema", None) is not None:
+        return
+
+    try:
+        from trl.chat_template_utils import add_response_schema  # type: ignore
+
+        add_response_schema(processing_class)
+        return
+    except Exception as exc:  # noqa: BLE001
+        normalized = model_name.lower().replace("_", "")
+        if "qwen2.5" in normalized or "qwen25" in normalized:
+            # Qwen2.5 tool format is compatible with TRL's Qwen3 parser schema.
+            from trl.chat_template_utils import qwen3_schema  # type: ignore
+
+            processing_class.response_schema = qwen3_schema
+            return
+        raise RuntimeError(
+            "Failed to configure tokenizer response schema for tool-calling GRPO. "
+            "Either use a model with a recognized chat template, or manually set "
+            "tokenizer.response_schema before creating GRPOTrainer."
+        ) from exc
 def run_dry_run(
     *,
     output_dir: Path,
@@ -293,6 +319,7 @@ def run_training(
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     if getattr(tokenizer, "pad_token_id", None) is None and getattr(tokenizer, "eos_token", None) is not None:
         tokenizer.pad_token = tokenizer.eos_token
+    _ensure_tool_response_schema(processing_class=tokenizer, model_name=model_name)
 
     chat_template_kwargs: dict[str, Any] = {"enable_thinking": False}
     max_prompt_tokens = max(128, int(max_prompt_length))

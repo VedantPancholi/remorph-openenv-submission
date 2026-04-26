@@ -39,6 +39,21 @@ def main() -> int:
     print("OK: TRL is_jmespath_available")
 
     tok = AutoTokenizer.from_pretrained(args.model)
+    try:
+        from trl.chat_template_utils import add_response_schema  # noqa: PLC0415
+
+        if getattr(tok, "response_schema", None) is None:
+            add_response_schema(tok)
+    except Exception:
+        normalized = args.model.lower().replace("_", "")
+        if "qwen2.5" in normalized or "qwen25" in normalized:
+            from trl.chat_template_utils import qwen3_schema  # noqa: PLC0415
+
+            tok.response_schema = qwen3_schema
+        else:
+            raise
+    print("OK: response_schema configured")
+
     if not supports_tool_calling(tok):
         print(
             "FAIL: tokenizer chat template does not support tool calling per TRL. "
