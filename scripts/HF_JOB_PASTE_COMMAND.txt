@@ -1,0 +1,10 @@
+# HF Jobs Web UI — Image: python:3.12
+# Env: REPO_URL, HF_DATASET_REPO, UPLOAD_PATH_IN_REPO, MAX_STEPS_V1=4, MAX_STEPS_V2=8, EVAL_STEPS=2
+# Secret: HF_TOKEN
+#
+# Paste the line below (only the line starting with bash) into the Command field:
+
+bash -c "set -euo pipefail; apt-get update && apt-get install -y --no-install-recommends git; git clone --depth 1 \"$REPO_URL\" remorph-openenv-submission; cd remorph-openenv-submission; exec bash scripts/hf_run_staged_grpo_two_stage_persist.sh"
+
+# After COMPLETED, open your DATASET (not Space) folder:
+# https://huggingface.co/datasets/<HF_DATASET_REPO>/tree/main/<UPLOAD_PATH_IN_REPO>

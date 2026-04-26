@@ -188,8 +188,8 @@ hf jobs run -d --flavor a10g-large --timeout 4h --secrets HF_TOKEN \
   -e PERSIST_ROOT=/mnt/trl_backup \
   -e MAX_STEPS_V1=8 -e MAX_STEPS_V2=12 \
   -v hf://buckets/Jenish31/your-bucket-name:/mnt/trl_backup \
-  python:3.12 bash -lc \
-  'git clone --depth 1 "$REPO_URL" remorph-openenv-submission && cd remorph-openenv-submission && bash scripts/hf_run_track_a_fast_persist.sh'
+  python:3.12 \
+  bash -lc "set -euo pipefail; apt-get update && apt-get install -y --no-install-recommends git; git clone --depth 1 \"\$REPO_URL\" remorph-openenv-submission; cd remorph-openenv-submission; bash scripts/hf_run_track_a_fast_persist.sh"
 ```
 
 Replace `Jenish31/your-bucket-name` with your real bucket id. If you omit `-v` and `PERSIST_ROOT`, the script still **uploads to the Dataset**; you only lose the extra on-disk mirror during the run.
@@ -212,6 +212,10 @@ You should see at least:
 - `hub_upload_manifest.json` — pointer to this folder on the Hub  
 - `best_run_promotion.json`, `frontend_payload.json`, etc.
 
+**Note:** Training artifacts are uploaded to a **Dataset** repo path above. A **Space** is a separate repo; it does not auto-fill with these files unless you wire it (for example `snapshot_download` from the Dataset or copy weights into the Space repo).
+
+**Copy-paste helper:** [`scripts/HF_JOB_PASTE_COMMAND.txt`](scripts/HF_JOB_PASTE_COMMAND.txt) — single `bash -c "..."` line for the HF Jobs command field.
+
 **Ready-to-paste HF Job** (Dataset upload required; bucket optional — remove `-v` / `PERSIST_ROOT` if you only want Hub):
 
 ```bash
@@ -224,9 +228,17 @@ hf jobs run -d --flavor a10g-large --timeout 6h --secrets HF_TOKEN \
   -e EVAL_STEPS=2 \
   -e PERSIST_ROOT=/mnt/trl_backup \
   -v hf://buckets/Jenish31/your-bucket-name:/mnt/trl_backup \
-  python:3.12 bash -lc \
-  'git clone --depth 1 "$REPO_URL" remorph-openenv-submission && cd remorph-openenv-submission && bash scripts/hf_run_staged_grpo_two_stage_persist.sh'
+  python:3.12 \
+  bash -lc "set -euo pipefail; apt-get update && apt-get install -y --no-install-recommends git; git clone --depth 1 \"\$REPO_URL\" remorph-openenv-submission; cd remorph-openenv-submission; bash scripts/hf_run_staged_grpo_two_stage_persist.sh"
 ```
+
+**No bucket:** drop `PERSIST_ROOT`, `-v`, and the line continuation before `python:3.12`. **Important:** use the quoted `bash -lc "..."` form above — `python:3.12` images often lack `git`, and a broken `-lc` quote can yield `No such file or directory` for the whole clone line.
+
+**HF Jobs UI / command field:** you must use **`bash -c "..."`** or **`bash -lc "..."`**. Never run **`bash 'inline; script; here'`** with only one argument — bash treats that as a **filename**, not shell code, and fails with exit **127** / `No such file or directory`. If the UI has separate boxes for executable and arguments, use executable **`bash`** and arguments **`-c`** plus **one string** with the full script (or paste the single-line command below).
+
+**One-line command (web UI, image `python:3.12`, no bucket):** put this in the job command (env vars unchanged):
+
+`bash -c "set -euo pipefail; apt-get update && apt-get install -y --no-install-recommends git; git clone --depth 1 \"$REPO_URL\" remorph-openenv-submission; cd remorph-openenv-submission; bash scripts/hf_run_staged_grpo_two_stage_persist.sh"`
 
 - **Push the script to GitHub first** (or point `REPO_URL` at a fork/branch that contains `hf_run_staged_grpo_two_stage_persist.sh`).  
 - **Token** must be allowed to **write** `HF_DATASET_REPO`.  
