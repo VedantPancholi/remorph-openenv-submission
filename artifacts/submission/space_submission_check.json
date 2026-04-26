@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "checks": {
+    "readme_exists": true,
+    "app_py_exists": true,
+    "server_app_py_exists": true,
+    "readme_mentions_space_phase": true,
+    "readme_mentions_colab": true,
+    "readme_mentions_trl": true,
+    "gradio_app_object_present": true,
+    "load_scenario_function_present": true,
+    "run_selected_policy_function_present": true,
+    "run_full_demo_function_present": true,
+    "server_main_present": true,
+    "server_demo_episode_present": true,
+    "app_import_check": false,
+    "app_import_error": "No module named 'gradio'"
+  }
+}

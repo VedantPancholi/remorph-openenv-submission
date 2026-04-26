@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remorph.local/schemas/frontend_payload.schema.json",
+  "title": "ReMorph Frontend Payload v1",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "generated_at_utc",
+    "db_path",
+    "summary",
+    "runs",
+    "metrics_by_run",
+    "artifacts_by_run",
+    "best_run"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "remorph-ui-v1"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "db_path": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_runs", "total_metric_points", "total_artifacts", "metric_names"],
+      "properties": {
+        "total_runs": { "type": "integer", "minimum": 0 },
+        "total_metric_points": { "type": "integer", "minimum": 0 },
+        "total_artifacts": { "type": "integer", "minimum": 0 },
+        "metric_names": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "runs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/run" }
+    },
+    "metrics_by_run": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/metric" }
+      }
+    },
+    "artifacts_by_run": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/artifact" }
+      }
+    },
+    "best_run": {
+      "anyOf": [
+        { "$ref": "#/$defs/run" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "run": {
+      "type": "object",
+      "required": [
+        "run_id",
+        "timestamp_utc",
+        "model_name",
+        "stage_label",
+        "status",
+        "prompt_row_count",
+        "eval_prompt_row_count",
+        "max_steps",
+        "reward_best",
+        "reward_last",
+        "eval_reward_best",
+        "eval_reward_last",
+        "frac_reward_zero_std_last",
+        "model_output_dir",
+        "source_type"
+      ],
+      "properties": {
+        "run_id": { "type": "string" },
+        "timestamp_utc": { "type": ["string", "null"] },
+        "model_name": { "type": ["string", "null"] },
+        "stage_label": { "type": "string" },
+        "status": { "type": ["string", "null"] },
+        "prompt_row_count": { "type": ["integer", "null"] },
+        "eval_prompt_row_count": { "type": ["integer", "null"] },
+        "max_steps": { "type": ["integer", "null"] },
+        "reward_best": { "type": ["number", "null"] },
+        "reward_last": { "type": ["number", "null"] },
+        "eval_reward_best": { "type": ["number", "null"] },
+        "eval_reward_last": { "type": ["number", "null"] },
+        "frac_reward_zero_std_last": { "type": ["number", "null"] },
+        "model_output_dir": { "type": ["string", "null"] },
+        "source_type": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "metric": {
+      "type": "object",
+      "required": ["step", "metric_name", "metric_value", "source_type"],
+      "properties": {
+        "step": { "type": "integer" },
+        "metric_name": { "type": "string" },
+        "metric_value": { "type": "number" },
+        "source_type": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["artifact_type", "artifact_path"],
+      "properties": {
+        "artifact_type": { "type": "string" },
+        "artifact_path": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

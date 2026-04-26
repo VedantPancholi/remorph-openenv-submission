@@ -1,0 +1,62 @@
+{
+  "contract_version": "remorph-ui-v1",
+  "generated_at_utc": "2026-04-26T02:21:54.325655+00:00",
+  "db_path": "artifacts/submission/frontend_bridge.sqlite3",
+  "summary": {
+    "total_runs": 0,
+    "total_metric_points": 0,
+    "total_artifacts": 11,
+    "metric_names": []
+  },
+  "runs": [],
+  "metrics_by_run": {},
+  "artifacts_by_run": {
+    "global": [
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/avg_reward_comparison.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/episode_return_comparison.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/loss_curve.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/reward_curve.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/success_rate_comparison.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/train_eval_raw_reward_comparison.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/train_eval_success_comparison.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/train_vs_eval_success.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/trl_train_frac_reward_zero_std.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/trl_train_reward.png"
+      },
+      {
+        "artifact_type": "plot_png",
+        "artifact_path": "artifacts/submission/plots/trl_train_reward_std.png"
+      }
+    ]
+  },
+  "best_run": null
+}

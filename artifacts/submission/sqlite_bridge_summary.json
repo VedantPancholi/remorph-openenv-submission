@@ -1,0 +1,12 @@
+{
+  "status": "ok",
+  "db_path": "artifacts/submission/frontend_bridge.sqlite3",
+  "submission_root": "artifacts/submission",
+  "imported_run_records": 0,
+  "imported_metric_records": 0,
+  "sqlite_counts": {
+    "runs": 0,
+    "metrics": 0,
+    "artifacts": 11
+  }
+}

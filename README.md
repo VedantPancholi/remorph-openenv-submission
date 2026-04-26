@@ -127,6 +127,103 @@ dataset uses non-overlapping train/eval seed ranges to reduce memorization risk.
 supervised structured policy remains the reliable benchmark backbone; TRL GRPO is the
 environment-training proof.
 
+### Quick confidence profile (20-30 minute target)
+
+Use the quick profile when you need a fast pass/fail signal, artifact generation, and
+team confidence before longer A10G/A100 runs complete.
+
+```bash
+chmod +x scripts/hf_run_quick_confidence.sh
+bash scripts/hf_run_quick_confidence.sh
+```
+
+Useful overrides:
+
+```bash
+MODEL=Qwen/Qwen2.5-0.5B-Instruct \
+MAX_STEPS_V1=30 \
+MAX_STEPS_V2=45 \
+HF_DATASET_REPO=Jenish31/remorph-training-artifacts \
+UPLOAD_PATH_IN_REPO=quick_confidence_run \
+bash scripts/hf_run_quick_confidence.sh
+```
+
+### Full staged profile (upgrade track)
+
+```bash
+chmod +x scripts/hf_run_staged_grpo_full.sh
+bash scripts/hf_run_staged_grpo_full.sh
+```
+
+### Space deployment checks
+
+Before handoff to judges or frontend:
+
+```bash
+python scripts/space_submission_checks.py
+# Optional live URL check:
+python scripts/space_submission_checks.py --space-url https://<your-space>.hf.space
+```
+
+The script writes `artifacts/submission/space_submission_check.json` so the team can
+track Space health, entrypoint presence, and README alignment in one place.
+
+### SQLite artifact bridge (frontend handoff)
+
+Generate a frontend-ready SQLite database from GRPO run ledger, summaries, and plots:
+
+```bash
+python scripts/sqlite_artifact_bridge.py
+```
+
+Output:
+
+- DB: `artifacts/submission/frontend_bridge.sqlite3`
+- Summary: `artifacts/submission/sqlite_bridge_summary.json`
+
+Core tables:
+
+- `runs` (run metadata and key metrics)
+- `metrics` (metric time-series for charting)
+- `artifacts` (paths to summaries, model dirs, plot assets)
+
+### Deterministic UI payload contract
+
+For frontend implementation, use the versioned contract docs:
+
+- `docs/frontend_data_contract.md`
+- `docs/frontend_payload.schema.json`
+
+Generate the deterministic payload:
+
+```bash
+python scripts/sqlite_artifact_bridge.py
+python scripts/export_frontend_payload.py
+```
+
+Output consumed by UI:
+
+- `artifacts/submission/frontend_payload.json`
+- `artifacts/submission/frontend_bridge.sqlite3`
+
+Recommended UI handshake:
+
+1. Validate `frontend_payload.json` against `docs/frontend_payload.schema.json`.
+2. Assert `contract_version == "remorph-ui-v1"`.
+3. Build charts from `metrics_by_run`.
+4. Build leaderboard/cards from `runs` and `best_run`.
+
+### Best-run promotion hook
+
+When long A10G/A100 runs finish, refresh the canonical best run pointer:
+
+```bash
+python scripts/promote_long_run_outputs.py
+```
+
+This writes `artifacts/submission/best_run_promotion.json` using the rule:
+highest `eval_reward_best`, tie-broken by lower `frac_reward_zero_std_last`.
+
 ## Enterprise workflow scope
 
 The richer scenario pack includes multi-app professional workflows such as:
