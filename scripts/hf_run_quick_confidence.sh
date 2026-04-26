@@ -48,7 +48,7 @@ python scripts/train_trl_grpo.py --train \
   --eval-path artifacts/submission/grpo_dataset_quick_500/eval_prompts.jsonl \
   --model "$MODEL" \
   --max-steps "$MAX_STEPS_V1" --learning-rate 1e-6 \
-  --per-device-train-batch-size 1 --gradient-accumulation-steps 2 --num-generations 4 \
+  --per-device-train-batch-size 1 --gradient-accumulation-steps 4 --num-generations 4 \
   --max-prompt-length 1536 --max-completion-length 512 --eval-steps 15
 
 python scripts/plot_trl_grpo.py \
@@ -61,7 +61,7 @@ python scripts/train_trl_grpo.py --train \
   --eval-path artifacts/submission/grpo_dataset_quick_1500/eval_prompts.jsonl \
   --model "$MODEL" \
   --max-steps "$MAX_STEPS_V2" --learning-rate 1e-6 \
-  --per-device-train-batch-size 1 --gradient-accumulation-steps 2 --num-generations 4 \
+  --per-device-train-batch-size 1 --gradient-accumulation-steps 4 --num-generations 4 \
   --max-prompt-length 1536 --max-completion-length 512 --eval-steps 15
 
 python scripts/plot_trl_grpo.py \
